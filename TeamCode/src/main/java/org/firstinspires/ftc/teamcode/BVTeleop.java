@@ -29,9 +29,18 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.Range;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.Range;
 //import com.qualcomm.robotcore.hardware.Servo;
 //import com.qualcomm.robotcore.util.Range;
 
@@ -51,19 +60,20 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 public class BVTeleop extends LinearOpMode {
 
     /* Declare OpMode members. */
-    public DcMotor  DownLeft;
-    public DcMotor  DownRight;
-    public DcMotor  UpLeft;
-    public DcMotor  UpRight;
-    /*public Servo    leftClaw;
-    public Servo    rightClaw;*/
+    public DcMotor BackLeft;
+    public DcMotor BackRight;
+    public DcMotor FrontLeft;
+    public DcMotor FrontRight;
+    public DcMotor leftArm;
+    public Servo leftClaw;
+    public Servo   rightClaw;
 
-    //double clawOffset = 0;
+    double clawOffset = 0;
 
-    /*public static final double MID_SERVO   =  0.5 ;
+    public static final double MID_SERVO   =  0.5 ;
     public static final double CLAW_SPEED  = 0.02 ;                 // sets rate to move servo
     public static final double ARM_UP_POWER    =  0.45 ;
-    public static final double ARM_DOWN_POWER  = -0.45 ;*/
+    public static final double ARM_DOWN_POWER  = -0.45 ;
 
     @Override
     public void runOpMode() {
@@ -74,28 +84,30 @@ public class BVTeleop extends LinearOpMode {
         double max;
 
         // Define and Initialize Motors
-        DownLeft  = hardwareMap.get(DcMotor.class, "DL");
-        DownRight = hardwareMap.get(DcMotor.class, "DR");
-        UpLeft = hardwareMap.get(DcMotor.class, "UL");
-        UpRight = hardwareMap.get(DcMotor.class, "UR");
+        BackLeft = hardwareMap.get(DcMotor.class, "BackLeft");
+        BackRight = hardwareMap.get(DcMotor.class, "BackRight");
+        FrontLeft = hardwareMap.get(DcMotor.class, "FrontLeft");
+        FrontRight = hardwareMap.get(DcMotor.class, "FrontRight");
+        leftArm = hardwareMap.get(DcMotor.class,"LeftArm");
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // Pushing the left stick forward MUST make robot go forward. So adjust these two lines based on your first test drive.
         // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
-        DownLeft.setDirection(DcMotor.Direction.REVERSE);
-        UpLeft.setDirection(DcMotor.Direction.REVERSE);
-        UpRight.setDirection(DcMotor.Direction.FORWARD);
-        DownRight.setDirection(DcMotor.Direction.FORWARD);
+        BackLeft.setDirection(DcMotor.Direction.REVERSE);
+        FrontLeft.setDirection(DcMotor.Direction.REVERSE);
+        FrontRight.setDirection(DcMotor.Direction.FORWARD);
+        BackRight.setDirection(DcMotor.Direction.FORWARD);
+        leftArm.setDirection(DcMotor.Direction.FORWARD);
 
         // If there are encoders connected, switch to RUN_USING_ENCODER mode for greater accuracy
         // leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         // rightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         // Define and initialize ALL installed servos.
-        /*leftClaw  = hardwareMap.get(Servo.class, "left_hand");
+        leftClaw  = hardwareMap.get(Servo.class, "left_hand");
         rightClaw = hardwareMap.get(Servo.class, "right_hand");
         leftClaw.setPosition(MID_SERVO);
-        rightClaw.setPosition(MID_SERVO);*/
+        rightClaw.setPosition(MID_SERVO);
 
         /* Send telemetry message to signify robot waiting;
         telemetry.addData(">", "Robot Ready.  Press Play.");    //
@@ -126,13 +138,13 @@ public class BVTeleop extends LinearOpMode {
             }
 
             // Output the safe vales to the motor drives.
-            DownLeft.setPower(left);
-            UpLeft.setPower(left);
-            DownRight.setPower(right);
-            UpRight.setPower(right);
+            BackLeft.setPower(left);
+            FrontLeft.setPower(left);
+            BackRight.setPower(right);
+            FrontRight.setPower(right);
 
             // Use gamepad left & right Bumpers to open and close the claw
-            /*if (gamepad1.right_bumper)
+            if (gamepad1.right_bumper)
                 clawOffset += CLAW_SPEED;
             else if (gamepad1.left_bumper)
                 clawOffset -= CLAW_SPEED;
@@ -157,7 +169,7 @@ public class BVTeleop extends LinearOpMode {
             telemetry.update();
 
             // Pace this loop so jaw action is reasonable speed.
-            sleep(50);*/
+            sleep(50);
         }
     }
 }

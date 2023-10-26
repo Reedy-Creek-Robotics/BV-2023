@@ -83,10 +83,10 @@ public class BVAutonomous extends LinearOpMode {
     public void runOpMode() {
 
         // Initialize the drive system variables.
-        DownleftDrive  = hardwareMap.get(DcMotor.class, "DL");
-        DownrightDrive = hardwareMap.get(DcMotor.class, "DR");
-        UpleftDrive = hardwareMap.get(DcMotor.class, "UL");
-        UprightDrive = hardwareMap.get(DcMotor.class, "UR");
+        DownleftDrive  = hardwareMap.get(DcMotor.class, "BackLeft");
+        DownrightDrive = hardwareMap.get(DcMotor.class, "BackRight");
+        UpleftDrive = hardwareMap.get(DcMotor.class, "FrontLeft");
+        UprightDrive = hardwareMap.get(DcMotor.class, "FrontRight");
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // When run, this OpMode should start both motors driving forward. So adjust these two lines based on your first test drive.
@@ -119,9 +119,10 @@ public class BVAutonomous extends LinearOpMode {
 
         // Steps are called sequentially from top to bottom,
         // Note: Reverse movement is obtained by setting a negative distance (not speed)
-        /* Examples below:
-        encoderDrive(DRIVE_SPEED,  48,  48, 5.0);  // S1: Forward 48 Inches with 5 Sec timeout
-        encoderDrive(TURN_SPEED,   12, -12, 4.0);  // S2: Turn Right 12 Inches with 4 Sec timeout*/
+        // Examples below:
+        encoderDrive(0.6,  48,  48, 5.0);  // S1: Forward 48 Inches with 5 Sec timeout
+        sleep(1000);
+        encoderDrive(0.6,   0.125, -0.125, 0.5);  // S2: Turn Right 12 Inches with 4 Sec timeout
 
         telemetry.addData("Path", "Complete");
         telemetry.update();
@@ -180,10 +181,10 @@ public class BVAutonomous extends LinearOpMode {
                    (runtime.seconds() < timeoutS) &&
                    (DownleftDrive.isBusy() && DownrightDrive.isBusy() && UpleftDrive.isBusy() && UprightDrive.isBusy())) {
 
+
                 // Display it for the driver.
-                telemetry.addData("Running to",  " %7d :%7d", newDownLeftTarget,  newDownRightTarget, newUpLeftTarget,  newUpRightTarget);
-                telemetry.addData("Currently at",  " at %7d :%7d",
-                                            DownleftDrive.getCurrentPosition(), DownrightDrive.getCurrentPosition(), UpleftDrive.getCurrentPosition(), UprightDrive.getCurrentPosition());
+                telemetry.addData("Running to", " %7d :%7d", newDownLeftTarget, newDownRightTarget, newUpLeftTarget, newUpRightTarget);
+                telemetry.addData("Currently at", " at %7d :%7d", DownleftDrive.getCurrentPosition(), DownrightDrive.getCurrentPosition(), UpleftDrive.getCurrentPosition(), UprightDrive.getCurrentPosition());
                 telemetry.update();
             }
 
