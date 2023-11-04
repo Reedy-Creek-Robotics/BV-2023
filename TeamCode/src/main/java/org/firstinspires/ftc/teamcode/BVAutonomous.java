@@ -33,6 +33,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.ElapsedTime;
+import com.qualcomm.robotcore.hardware.DcMotor.ZeroPowerBehavior;
 
 /*
  * This OpMode illustrates the concept of driving a path based on encoder counts.
@@ -76,8 +77,6 @@ public class BVAutonomous extends LinearOpMode {
     static final double     WHEEL_DIAMETER_INCHES   = 4.0 ;     // For figuring circumference
     static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
                                                       (WHEEL_DIAMETER_INCHES * 3.1415);
-    static final double     DRIVE_SPEED             = 0.6;
-    static final double     TURN_SPEED              = 0.5;
 
     @Override
     public void runOpMode() {
@@ -87,6 +86,11 @@ public class BVAutonomous extends LinearOpMode {
         DownrightDrive = hardwareMap.get(DcMotor.class, "BackRight");
         UpleftDrive = hardwareMap.get(DcMotor.class, "FrontLeft");
         UprightDrive = hardwareMap.get(DcMotor.class, "FrontRight");
+
+        DownleftDrive.setZeroPowerBehavior(ZeroPowerBehavior.BRAKE);
+        DownrightDrive.setZeroPowerBehavior(ZeroPowerBehavior.BRAKE);
+        UprightDrive.setZeroPowerBehavior(ZeroPowerBehavior.BRAKE);
+        UpleftDrive.setZeroPowerBehavior(ZeroPowerBehavior.BRAKE);
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // When run, this OpMode should start both motors driving forward. So adjust these two lines based on your first test drive.
@@ -120,11 +124,11 @@ public class BVAutonomous extends LinearOpMode {
         // Steps are called sequentially from top to bottom,
         // Note: Reverse movement is obtained by setting a negative distance (not speed)
         // Examples below:
-        encoderDrive(0.6,  48,  48, 5.0);  // S1: Forward 48 Inches with 5 Sec timeout
+        encoderDrive(0.6,  48,  48);  // S1: Forward 48 Inches with 5 Sec timeout
         sleep(1000);
-        encoderDrive(0.6,   0.125, -0.125, 0.5);  // S2: Turn Right 12 Inches with 4 Sec timeout
+        encoderDrive(0.6,   0.25, -0.25);  // S2: Turn Right 12 Inches with 4 Sec timeout
 
-        telemetry.addData("Path", "Complete");
+        telemetry.addLine("Path Complete");
         telemetry.update();
         sleep(1000);  // pause to display final telemetry message.
     }
@@ -138,8 +142,7 @@ public class BVAutonomous extends LinearOpMode {
      *  3) Driver stops the OpMode running.
      */
     public void encoderDrive(double speed,
-                             double leftInches, double rightInches,
-                             double timeoutS) {
+                             double leftInches, double rightInches) {
         int newDownLeftTarget;
         int newDownRightTarget;
         int newUpLeftTarget;
@@ -165,7 +168,6 @@ public class BVAutonomous extends LinearOpMode {
             UprightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
             // reset the timeout time and start motion.
-            runtime.reset();
             DownleftDrive.setPower(Math.abs(speed));
             DownrightDrive.setPower(Math.abs(speed));
             UpleftDrive.setPower(Math.abs(speed));
@@ -178,21 +180,25 @@ public class BVAutonomous extends LinearOpMode {
             // However, if you require that BOTH motors have finished their moves before the robot continues
             // onto the next step, use (isBusy() || isBusy()) in the loop test.
             while (opModeIsActive() &&
-                   (runtime.seconds() < timeoutS) &&
                    (DownleftDrive.isBusy() && DownrightDrive.isBusy() && UpleftDrive.isBusy() && UprightDrive.isBusy())) {
-
-
                 // Display it for the driver.
                 telemetry.addData("Running to", " %7d :%7d", newDownLeftTarget, newDownRightTarget, newUpLeftTarget, newUpRightTarget);
                 telemetry.addData("Currently at", " at %7d :%7d", DownleftDrive.getCurrentPosition(), DownrightDrive.getCurrentPosition(), UpleftDrive.getCurrentPosition(), UprightDrive.getCurrentPosition());
                 telemetry.update();
             }
 
+            // Reset encoders for the next step
+            DownleftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            DownrightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            UpleftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            UprightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
             // Stop all motion;
             DownleftDrive.setPower(0);
             DownrightDrive.setPower(0);
             UpleftDrive.setPower(0);
             UprightDrive.setPower(0);
+
 
             // Turn off RUN_TO_POSITION
             DownleftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
