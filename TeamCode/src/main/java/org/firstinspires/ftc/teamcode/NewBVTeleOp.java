@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
-//ADD DRIVER RELATIVE FOR PEEPS | In progress
+import android.media.Image;
+
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -13,6 +14,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import java.lang.Math;
@@ -25,10 +27,11 @@ public class NewBVTeleOp extends LinearOpMode {
         // Declare our motors
         // Make sure your ID's match your configuration
         ElapsedTime runtime = new ElapsedTime();
-        /*DcMotor Slide1 = hardwareMap.get(DcMotor.class, "LinearSlide1");
-        DcMotor Slide2 = hardwareMap.get(DcMotor.class, "LinearSlide2");*/
+        DcMotor Slide = hardwareMap.get(DcMotor.class, "Slide");
+        //DcMotor Slide2 = hardwareMap.get(DcMotor.class, "LinearSlide2");
         CRServo RollerIntake = hardwareMap.get(CRServo.class, "RollerIntake");
         ElapsedTime timeSinceManualMode = new ElapsedTime();
+        Servo PlaneLaunchServo = hardwareMap.get(Servo.class, "LaunchServo");
 
         DcMotor motorFrontLeft = hardwareMap.dcMotor.get("FrontLeft");
         DcMotor motorBackLeft = hardwareMap.dcMotor.get("BackLeft");
@@ -40,6 +43,7 @@ public class NewBVTeleOp extends LinearOpMode {
         motorBackRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         motorFrontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         motorFrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        Slide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
 
         // Adjust the orientation parameters to match your robot
@@ -55,15 +59,12 @@ public class NewBVTeleOp extends LinearOpMode {
 
         int CurrentPosition;
         int SlideStop = 0;
-        double slidepower = 0;
         double ClawPos;
         double OpenClaw = 0.5;
         double ClosedClaw = 0.33;
         double RollerPow = 0.1;
         double CurrentPower = 0.8;
         int currentSlideTick = 0;
-        boolean clawShouldBeClosed = false;
-        double clawTravelCondition = ClosedClaw;
         boolean manualSlide = false;
 
         // Reverse the right side motors
@@ -72,11 +73,12 @@ public class NewBVTeleOp extends LinearOpMode {
         motorBackLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         motorBackRight.setDirection(DcMotorSimple.Direction.FORWARD);
         motorFrontRight.setDirection(DcMotorSimple.Direction.FORWARD);
-        /*ClawServo.setPosition(0.0);
-        Slide1.setDirection(DcMotor.Direction.REVERSE);
-        Slide1.setTargetPosition(0);
-        Slide2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        Slide2.setDirection(DcMotor.Direction.REVERSE);
+        PlaneLaunchServo.setDirection(Servo.Direction.REVERSE);
+        PlaneLaunchServo.setPosition(0.0);
+        Slide.setDirection(DcMotor.Direction.REVERSE);
+        Slide.setTargetPosition(0);
+        Slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        /*Slide2.setDirection(DcMotor.Direction.REVERSE);
         Slide2.setTargetPosition(0);
         Slide2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);*/
 
@@ -91,6 +93,7 @@ public class NewBVTeleOp extends LinearOpMode {
             double y = -gamepad1.left_stick_y; // Remember, this is reversed!
             double x = gamepad1.left_stick_x * correctionFactor; // Counteract imperfect strafing
             double rx = gamepad1.right_stick_x;
+            int SlideCurrentPos = Slide.getCurrentPosition();
             //double slideY = gamepad2.right_stick_y;
 
             // Denominator is the largest motor power (absolute value) or 1
@@ -123,14 +126,35 @@ public class NewBVTeleOp extends LinearOpMode {
             }
 */
             //roller intake
-            while (gamepad1.a) {
+            if (gamepad1.left_bumper) {
+                PlaneLaunchServo.setPosition(1);
+            }
+            if (gamepad1.right_bumper) {
+                PlaneLaunchServo.setPosition(0);
+            }
+            if (gamepad1.a) {
                 RollerIntake.setPower(0.5);
             }
-            while (gamepad1.b) {
+            if (gamepad1.b) {
                 RollerIntake.setPower(-0.5);
             }
-            while (gamepad1.x) {
+            if (gamepad1.x) {
                 RollerIntake.setPower(0);
+            }
+            if (gamepad1.dpad_up) {
+                Slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                Slide.setTargetPosition(SlideCurrentPos += 3);
+                Slide.setPower(1);
+            } else if (gamepad1.dpad_down) {
+                Slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                Slide.setTargetPosition(SlideCurrentPos -= 3);
+                Slide.setPower(1);
+            }
+            if (!gamepad1.dpad_up && !gamepad1.dpad_down) {
+                Slide.setPower(0);
+            }
+            if (SlideCurrentPos < 0) {
+                Slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             }
 
             //slides
@@ -139,10 +163,6 @@ public class NewBVTeleOp extends LinearOpMode {
                 telemetry.addData("Yaw", "Resetting\n");
                 imu.resetYaw();
             }*/
-
-            if (SlideStop != 0) {
-                slidepower = gamepad2.right_stick_y*1.1;
-            }
 
             /*ClawPos = ClawServo.getPosition();
             SlideStop = Slide1.getTargetPosition();
@@ -157,6 +177,7 @@ public class NewBVTeleOp extends LinearOpMode {
             telemetry.addData("Yaw (Z)", "%.2f Deg. (Heading)", orientation.getYaw(AngleUnit.DEGREES));
             telemetry.addData("Pitch (X)", "%.2f Deg.", orientation.getPitch(AngleUnit.DEGREES));
             telemetry.addData("Roll (Y)", "%.2f Deg.\n", orientation.getRoll(AngleUnit.DEGREES));
+            telemetry.addData("PlaneServo Pos:", PlaneLaunchServo.getPosition());
             //telemetry.addData("Claw Current Position:", ClawPos);
 
             motorFrontLeft.setPower(frontleft);
