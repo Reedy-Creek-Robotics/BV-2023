@@ -73,8 +73,9 @@ public class NewBVTeleOp extends LinearOpMode {
         motorBackLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         motorBackRight.setDirection(DcMotorSimple.Direction.FORWARD);
         motorFrontRight.setDirection(DcMotorSimple.Direction.FORWARD);
-        PlaneLaunchServo.setDirection(Servo.Direction.REVERSE);
-        PlaneLaunchServo.setPosition(0.0);
+        //Switch direction if servo runs backwards
+        PlaneLaunchServo.setDirection(Servo.Direction.FORWARD);
+        PlaneLaunchServo.setPosition(PlaneLaunchServo.getPosition());
         Slide.setDirection(DcMotor.Direction.REVERSE);
         Slide.setTargetPosition(0);
         Slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -127,10 +128,10 @@ public class NewBVTeleOp extends LinearOpMode {
 */
             //roller intake
             if (gamepad1.left_bumper) {
-                PlaneLaunchServo.setPosition(1);
+                PlaneLaunchServo.setPosition(0.0);
             }
             if (gamepad1.right_bumper) {
-                PlaneLaunchServo.setPosition(0);
+                PlaneLaunchServo.setPosition(1.0);
             }
             if (gamepad1.a) {
                 RollerIntake.setPower(0.5);
@@ -143,11 +144,12 @@ public class NewBVTeleOp extends LinearOpMode {
             }
             if (gamepad1.dpad_up) {
                 Slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                Slide.setTargetPosition(SlideCurrentPos += 3);
+                Slide.setTargetPosition(SlideCurrentPos += 1000);
                 Slide.setPower(1);
-            } else if (gamepad1.dpad_down) {
+            }
+            if (gamepad1.dpad_down) {
                 Slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                Slide.setTargetPosition(SlideCurrentPos -= 3);
+                Slide.setTargetPosition(SlideCurrentPos -= 45000);
                 Slide.setPower(1);
             }
             if (!gamepad1.dpad_up && !gamepad1.dpad_down) {

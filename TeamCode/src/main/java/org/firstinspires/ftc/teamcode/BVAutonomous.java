@@ -180,7 +180,7 @@ public class BVAutonomous extends LinearOpMode {
             // However, if you require that BOTH motors have finished their moves before the robot continues
             // onto the next step, use (isBusy() || isBusy()) in the loop test.
             while (opModeIsActive() &&
-                   (DownleftDrive.isBusy() && DownrightDrive.isBusy() && UpleftDrive.isBusy() && UprightDrive.isBusy())) {
+                   (DownleftDrive.isBusy() || DownrightDrive.isBusy() || UpleftDrive.isBusy() || UprightDrive.isBusy())) {
                 // Display it for the driver.
                 telemetry.addData("Running to", " %7d :%7d", newDownLeftTarget, newDownRightTarget, newUpLeftTarget, newUpRightTarget);
                 telemetry.addData("Currently at", " at %7d :%7d", DownleftDrive.getCurrentPosition(), DownrightDrive.getCurrentPosition(), UpleftDrive.getCurrentPosition(), UprightDrive.getCurrentPosition());

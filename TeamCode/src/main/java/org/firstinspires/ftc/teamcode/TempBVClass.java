@@ -7,12 +7,10 @@ public class TempBVClass extends LinearOpMode {
 
         BVColorTest.SkystoneDeterminationPipeline.TSEposition barcode = color.getBarcode();
 
-        if (barcode == BVColorTest.SkystoneDeterminationPipeline.TSEposition.MID) {
-            //dothing2
-        }
-
         if(barcode == BVColorTest.SkystoneDeterminationPipeline.TSEposition.TOP){
-            //dothing
+            telemetry.addLine("No color");
+        } else {
+            telemetry.addLine( "Color sensed");
         }
     }
 
