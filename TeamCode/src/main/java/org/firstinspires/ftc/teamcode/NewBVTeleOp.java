@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 import android.media.Image;
+import android.transition.Slide;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
@@ -28,7 +29,6 @@ public class NewBVTeleOp extends LinearOpMode {
         // Make sure your ID's match your configuration
         ElapsedTime runtime = new ElapsedTime();
         DcMotor Slide = hardwareMap.get(DcMotor.class, "Slide");
-        //DcMotor Slide2 = hardwareMap.get(DcMotor.class, "LinearSlide2");
         CRServo RollerIntake = hardwareMap.get(CRServo.class, "RollerIntake");
         ElapsedTime timeSinceManualMode = new ElapsedTime();
         Servo PlaneLaunchServo = hardwareMap.get(Servo.class, "LaunchServo");
@@ -79,9 +79,6 @@ public class NewBVTeleOp extends LinearOpMode {
         Slide.setDirection(DcMotor.Direction.REVERSE);
         Slide.setTargetPosition(0);
         Slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        /*Slide2.setDirection(DcMotor.Direction.REVERSE);
-        Slide2.setTargetPosition(0);
-        Slide2.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);*/
 
         waitForStart();
 

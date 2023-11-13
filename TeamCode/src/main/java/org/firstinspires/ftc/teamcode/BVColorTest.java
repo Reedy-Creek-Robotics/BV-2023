@@ -23,6 +23,7 @@ package org.firstinspires.ftc.teamcode;
 
 import android.util.Log;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -44,6 +45,7 @@ import org.openftc.easyopencv.OpenCvWebcam;
  * 100% accurate) method of detecting the skystone when lined up with
  * the sample regions over the first 3 stones.
  */
+@Disabled
 public class BVColorTest {
     OpenCvWebcam webcam;
     SkystoneDeterminationPipeline pipeline;
@@ -60,7 +62,7 @@ public class BVColorTest {
          */
 
         int cameraMonitorViewId = opmode.hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", opmode.hardwareMap.appContext.getPackageName());
-        webcam = OpenCvCameraFactory.getInstance().createWebcam(opmode.hardwareMap.get(WebcamName.class, "Webcam 1"), cameraMonitorViewId);
+        webcam = OpenCvCameraFactory.getInstance().createWebcam(opmode.hardwareMap.get(WebcamName.class, "Camera"), cameraMonitorViewId);
         pipeline = new SkystoneDeterminationPipeline();
         webcam.setPipeline(pipeline);
 
@@ -135,8 +137,8 @@ public class BVColorTest {
         static final Scalar RED = new Scalar(255, 0, 0);
         static final Scalar PURPLE = new Scalar(255, 0, 255);
         static final Scalar GREEN = new Scalar(0, 255, 0);
-        static final Scalar LOW_RED = new Scalar(130, 0, 20);
-        static final Scalar HIGH_RED = new Scalar(180, 255, 255);
+        static final Scalar LOW_RED = new Scalar(130, 0, 0);
+        static final Scalar HIGH_RED = new Scalar(180, 0, 0);
 
         /*
          * The core values which define the location and size of the sample regions
