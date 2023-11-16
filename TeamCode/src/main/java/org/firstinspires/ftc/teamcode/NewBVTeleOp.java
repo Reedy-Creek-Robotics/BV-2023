@@ -154,6 +154,7 @@ public class NewBVTeleOp extends LinearOpMode {
             }
             if (SlideCurrentPos < 0) {
                 Slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                Slide.setPower(0);
             }
 
             //slides

@@ -14,20 +14,25 @@ public class NewBVAutonomous extends LinearOpMode {
         RIGHT
     }
 
-    DcMotor frontLeft = hardwareMap.dcMotor.get("FrontLeft");
-    DcMotor backLeft = hardwareMap.dcMotor.get("BackLeft");
-    DcMotor frontRight = hardwareMap.dcMotor.get("FrontRight");
-    DcMotor backRight = hardwareMap.dcMotor.get("BackRight");
+    DcMotor frontLeft;
+    DcMotor backLeft;
+    DcMotor frontRight;
+    DcMotor backRight;
 
     @Override
     public void runOpMode() throws InterruptedException {
+
+        frontLeft = hardwareMap.dcMotor.get("FrontLeft");
+        backLeft = hardwareMap.dcMotor.get("BackLeft");
+        frontRight = hardwareMap.dcMotor.get("FrontRight");
+        backRight = hardwareMap.dcMotor.get("BackRight");
 
         backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        // Reverse the right side motors
+        //Reverse the right side motors
         // Reverse left motors if you are using NeveRests
         frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -46,18 +51,18 @@ public class NewBVAutonomous extends LinearOpMode {
 
         waitForStart();
 
-        while (opModeIsActive()) {
+        if (opModeIsActive()) {
 
-            telemetry.addData("Starting at",  "%7d :%7d",
-                    backLeft.getCurrentPosition(),
-                    backRight.getCurrentPosition(),
-                    frontLeft.getCurrentPosition(),
-                    frontRight.getCurrentPosition());
-            telemetry.update();
+            /* Motor action below
+             IF ROTATION == TRUE,  Direction.LEFT OR Direction.RIGHT ONLY
+             Inches var is DOUBLE, not INT
+             motorAction method runs actions sequentially*/
 
-            // Motor action here
-            // IF ROTATION == TRUE, ROTATE LEFT OR RIGHT ONLY
 
+            //Moves the robot forward at 0.6 power, 24 inches
+            motorAction(0.2, 12.0, Direction.FORWARD, false);
+            //Rotates the robot to the left at 0.6 power for 0.5 inches
+            //motorAction(0.6, 1.0, Direction.LEFT, false);
 
 
             telemetry.addLine("Path Complete");
@@ -66,7 +71,13 @@ public class NewBVAutonomous extends LinearOpMode {
         }
     }
 
-    public void motorAction(double speed, double inches, Direction direction, boolean rotate) {
+    public void motorAction(double power, double inches, Direction direction, boolean rotate) {
+
+        //DcMotor frontLeft = hardwareMap.dcMotor.get("FrontLeft");
+        //DcMotor backLeft = hardwareMap.dcMotor.get("BackLeft");
+        //DcMotor frontRight = hardwareMap.dcMotor.get("FrontRight");
+        //DcMotor backRight = hardwareMap.dcMotor.get("BackRight");
+
         int downLeftTarget;
         int downRightTarget;
         int upLeftTarget;
@@ -88,13 +99,12 @@ public class NewBVAutonomous extends LinearOpMode {
                     (WHEEL_DIAMETER_INCHES * 3.1415);
 
             // Determine new target position, and pass to motor controller
-            downLeftTarget = backLeft.getCurrentPosition() + (int)(inches * COUNTS_PER_INCH);
-            downRightTarget = backRight.getCurrentPosition() + (int)(inches * COUNTS_PER_INCH);
-            upLeftTarget = frontLeft.getCurrentPosition() + (int)(inches * COUNTS_PER_INCH);
-            upRightTarget = frontRight.getCurrentPosition() + (int)(inches * COUNTS_PER_INCH);
+            downLeftTarget = (int)(inches * COUNTS_PER_INCH);
+            downRightTarget = (int)(inches * COUNTS_PER_INCH);
+            upLeftTarget = (int)(inches * COUNTS_PER_INCH);
+            upRightTarget = (int)(inches * COUNTS_PER_INCH);
 
             //Direction configuration
-
             if (direction == Direction.FORWARD && !rotate) {
                 backLeft.setTargetPosition(downLeftTarget);
                 backRight.setTargetPosition(downRightTarget);
@@ -144,10 +154,10 @@ public class NewBVAutonomous extends LinearOpMode {
             frontRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
             // Start motion
-            backLeft.setPower(Math.abs(speed));
-            backRight.setPower(Math.abs(speed));
-            frontLeft.setPower(Math.abs(speed));
-            frontRight.setPower(Math.abs(speed));
+            backLeft.setPower(Math.abs(power));
+            backRight.setPower(Math.abs(power));
+            frontLeft.setPower(Math.abs(power));
+            frontRight.setPower(Math.abs(power));
 
             // keep looping while we are still active, and there is time left, and both motors are running.
             // Note: We use (isBusy() && isBusy()) in the loop test, which means that when EITHER motor hits
@@ -169,12 +179,18 @@ public class NewBVAutonomous extends LinearOpMode {
             frontLeft.setPower(0);
             frontRight.setPower(0);
 
+            backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
             // Turn off RUN_TO_POSITION
-            backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            //backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            //backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            //frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            //frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+            sleep(5000);
         }
     }
 }
