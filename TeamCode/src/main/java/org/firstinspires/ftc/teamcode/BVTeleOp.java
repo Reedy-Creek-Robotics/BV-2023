@@ -20,7 +20,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import java.lang.Math;
 @TeleOp
-public class NewBVTeleOp extends LinearOpMode {
+public class BVTeleOp extends LinearOpMode {
 
     @Override
 

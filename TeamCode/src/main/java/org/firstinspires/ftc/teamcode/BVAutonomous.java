@@ -52,13 +52,18 @@ public class BVAutonomous extends LinearOpMode {
              Inches var is DOUBLE, not INT
              motorAction method runs actions sequentially automatically
 
-             6 inches on 0.6 power = 1 tile*/
+            6 inches on 0.6 power = ~1 tile
+            6 inches on 0.6 power = ~90 Degrees
+            Linear driving is recommended over strafing!!
 
-
-            //Moves the robot forward at 0.6 power, 12 inches
+            Moves the robot forward at 0.6 power for 12 inches
             motorAction(0.6, 12.0, Direction.FORWARD, false);
-            //Rotates the robot to the left at 0.6 power for 0.5 inches
+            Rotates the robot to the left at 0.6 power for 0.5 inches
             motorAction(0.6, 6.0, Direction.LEFT, true);
+            Strafes the robot to the right at 0.6 power for 12 inches
+            motorAction(0.6, 12.0, Direction.RIGHT, false);*/
+
+            motorAction(0.6,12.0, Direction.LEFT,false);
 
 
             telemetry.addLine("Path Complete");
