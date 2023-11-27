@@ -72,7 +72,8 @@ public class BVAprilTagTest extends LinearOpMode  {
         webCam = webCamBuilder.build();
 
         // Exposure control init
-        //exposureController = Exposurecontrol param here
+        // Program recieves an error for exposureController = null. Implement TFOD / Vuforia to fix this.
+        //exposureController = exposureController.getClass();
         exposureController.setMode(ExposureControl.Mode.Manual);
         exposureController.setExposure(30, TimeUnit.MILLISECONDS);
 
