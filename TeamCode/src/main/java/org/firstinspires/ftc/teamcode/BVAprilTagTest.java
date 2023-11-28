@@ -5,6 +5,7 @@ import static org.checkerframework.checker.nullness.Opt.get;
 import android.util.Size;
 
 import com.google.blocks.ftcrobotcontroller.runtime.obsolete.VuforiaLocalizerAccess;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -22,7 +23,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 
-@TeleOp
+@Autonomous
 public class BVAprilTagTest extends LinearOpMode  {
 
     //Our visionPortal / webCam
@@ -31,62 +32,13 @@ public class BVAprilTagTest extends LinearOpMode  {
     //Our processor for the webCam
     AprilTagProcessor processor;
 
-    //Exposure Control var init
-    ExposureControl exposureController;
-
     @Override
     public void runOpMode() throws InterruptedException {
-
-        //April tag processor init
-        processor = new AprilTagProcessor.Builder()
-
-                .setDrawAxes(true)
-                .setDrawCubeProjection(true)
-                .setDrawTagOutline(true)
-                .setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11)
-                .setTagLibrary(AprilTagGameDatabase.getCenterStageTagLibrary())
-                .setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
-
-                .build();
-
-        // Vision Portal / Camera init
-        VisionPortal.Builder webCamBuilder = new VisionPortal.Builder();
-        webCamBuilder.setCamera(hardwareMap.get(WebcamName.class, "Camera"));
-
-        // Choose a camera resolution. Not all cameras support all resolutions.
-        webCamBuilder.setCameraResolution(new Size(800, 600));
-
-        // Set the stream format; MJPEG uses less bandwidth than default YUY2.
-        webCamBuilder.setStreamFormat(VisionPortal.StreamFormat.YUY2);
-
-        // Choose whether or not LiveView stops if no processors are enabled.
-        // If set "true", monitor shows solid orange screen if no processors enabled.
-        // If set "false", monitor shows camera view without annotations.
-        webCamBuilder.setAutoStopLiveView(true);
-
-        // Set and enable the processor.
-        webCamBuilder.addProcessor(processor);
-
-
-        // Build the Vision Portal, using the above settings.
-        webCam = webCamBuilder.build();
-
-        // Exposure control init
-        // Program recieves an error for exposureController = null. Implement TFOD / Vuforia to fix this.
-        //exposureController = exposureController.getClass();
-        exposureController.setMode(ExposureControl.Mode.Manual);
-        exposureController.setExposure(30, TimeUnit.MILLISECONDS);
-
-        // Disable or re-enable the aprilTag processor at any time.
-        //webCam.setProcessorEnabled(aprilTag, true);
 
         waitForStart();
 
         if (opModeIsActive()) {
             while (opModeIsActive()) {
-
-                // Telemetry for camera current settings
-                telemetry.addData("Camera exposure:", exposureController.getExposure(TimeUnit.MILLISECONDS));
 
                 // Telemetry for notice of april tag detection
                 List<AprilTagDetection> currentDetections = processor.getDetections();
