@@ -1,5 +1,9 @@
 package org.firstinspires.ftc.teamcode;
 
+import static com.google.blocks.ftcrobotcontroller.util.CurrentGame.TFOD_MODEL_ASSET;
+
+import static org.firstinspires.ftc.robotcore.external.tfod.TfodParameters.CurrentGame.LABELS;
+
 import android.util.Size;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -21,6 +25,12 @@ import java.util.List;
 
 @TeleOp
 public class BVWebCamTest extends LinearOpMode {
+
+    private static final String TFOD_MODEL_ASSET = "CenterStage.tflite";
+
+    private static final String[] LABELS = {
+            "Pixel",
+    };
 
     // Method for aprilTag init: initAprilTagProcessor()
     // Method for tfod init: initTfodProcessor
@@ -44,12 +54,12 @@ public class BVWebCamTest extends LinearOpMode {
     @Override
     public void runOpMode() throws InterruptedException {
 
-        //Put apriltag + tfod inits here
+        //Tag + tfod inits
         initAprilTagProcessor();
         initTfodProcessor();
 
         //Active processor init
-        switchProcessor(false, true);
+        //switchProcessor(true, true);
 
         waitForStart();
 
@@ -59,7 +69,7 @@ public class BVWebCamTest extends LinearOpMode {
 
             //Toggles between tfod and tag
             if (gamepad1.y) {
-                switchProcessor(true, false);
+                //switchProcessor(true, false);
 
                 List<Recognition> currentRecognitions = tfodProcessor.getRecognitions();
                 telemetry.addData("# Objects Detected", currentRecognitions.size());
@@ -76,7 +86,7 @@ public class BVWebCamTest extends LinearOpMode {
 
                 }
             } if (gamepad1.a) {
-                switchProcessor(false, true);
+                //switchProcessor(false, true);
 
                 List<AprilTagDetection> currentDetections = tagProcessor.getDetections();
                 telemetry.addData("# AprilTags Detected", currentDetections.size());
@@ -93,14 +103,12 @@ public class BVWebCamTest extends LinearOpMode {
                         telemetry.addLine(String.format("Center %6.0f %6.0f   (pixels)", detection.center.x, detection.center.y));
                     }
                 }
-
             }
 
             telemetry.addData("IsTfodToggled:", tfodSwitch);
             telemetry.addData("IsTagToggled:", tagSwitch);
 
             telemetry.update();
-
 
         }
 
@@ -154,10 +162,10 @@ public class BVWebCamTest extends LinearOpMode {
 
                 // Use setModelAssetName() if the TF Model is built in as an asset.
                 // Use setModelFileName() if you have downloaded a custom team model to the Robot Controller.
-                //.setModelAssetName(TFOD_MODEL_ASSET)
+                .setModelAssetName(TFOD_MODEL_ASSET)
                 //.setModelFileName(TFOD_MODEL_FILE)
 
-                //.setModelLabels(LABELS)
+                .setModelLabels(LABELS)
                 //.setIsModelTensorFlow2(true)
                 //.setIsModelQuantized(true)
                 .setModelInputSize(40)
@@ -169,10 +177,10 @@ public class BVWebCamTest extends LinearOpMode {
         VisionPortal.Builder builder = new VisionPortal.Builder();
 
         // Set the webcam.
-        builder.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
+        builder.setCamera(hardwareMap.get(WebcamName.class, "Camera"));
 
         // Choose a camera resolution. Not all cameras support all resolutions.
-        builder.setCameraResolution(new Size(640, 480));
+        builder.setCameraResolution(new Size(800, 600));
 
         // Set the stream format; MJPEG uses less bandwidth than default YUY2.
         builder.setStreamFormat(VisionPortal.StreamFormat.YUY2);
@@ -196,7 +204,7 @@ public class BVWebCamTest extends LinearOpMode {
 
     }   // end method initTfod()
 
-    private void switchProcessor(boolean tfodSwitch, boolean tagSwitch) {
+    /*private void switchProcessor(boolean tfodSwitch, boolean tagSwitch) {
 
         //Tfod logic
         if (tfodSwitch) {
@@ -211,5 +219,5 @@ public class BVWebCamTest extends LinearOpMode {
         } else {
             webCam.setProcessorEnabled(tagProcessorSwitch, false);
         }
-    }
+    }*/
 }

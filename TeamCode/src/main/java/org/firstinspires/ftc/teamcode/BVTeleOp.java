@@ -67,6 +67,8 @@ public class BVTeleOp extends LinearOpMode {
         double CurrentPower = 0.8;
         int currentSlideTick = 0;
         boolean manualSlide = false;
+        double slidePowerStop = 0.05;
+        double slideElapsedTime = 0;
 
         // Reverse the right side motors
         // Reverse left motors if you are using NeveRests
@@ -154,9 +156,28 @@ public class BVTeleOp extends LinearOpMode {
             if (!gamepad1.dpad_up && !gamepad1.dpad_down) {
                 Slide.setPower(0);
             }
-            if (SlideCurrentPos < 0) {
+            if (Slide.getCurrentPosition() < 0) {
                 Slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                Slide.setPower(0);
+                SlideCurrentPos = 0;
+            }
+            if (gamepad1.right_bumper && slideElapsedTime >= 0.25) {
+                slidePowerStop += 0.05;
+                slideElapsedTime = 0;
+            }
+            if (gamepad1.left_bumper && slideElapsedTime >= 0.25) {
+                slidePowerStop -= 0.05;
+                slideElapsedTime = 0;
+            }
+            if (gamepad1.right_trigger >= 0.6) {
+                Slide.setTargetPosition(SlideCurrentPos -= 1000);
+                Slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                Slide.setPower(slidePowerStop);
+            }
+            if (slidePowerStop < 0) {
+                slidePowerStop = 0;
+            }
+            if (slidePowerStop > 1) {
+                slidePowerStop = 1;
             }
 
             //slides
@@ -170,25 +191,25 @@ public class BVTeleOp extends LinearOpMode {
             SlideStop = Slide1.getTargetPosition();
             CurrentPosition = Slide1.getCurrentPosition();*/
 
+            slideElapsedTime += 0.01;
+
             YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
 
             telemetry.addData("Status", "Run Time: " + runtime.toString());
-            //telemetry.addData("Current Position:", CurrentPosition);
-            telemetry.addData("Target Position:", SlideStop);
+            telemetry.addData("Current Position:", Slide.getCurrentPosition());
+            telemetry.addData("Target Position:", Slide.getTargetPosition());
             telemetry.addData("Current Power:", CurrentPower);
             telemetry.addData("Yaw (Z)", "%.2f Deg. (Heading)", orientation.getYaw(AngleUnit.DEGREES));
             telemetry.addData("Pitch (X)", "%.2f Deg.", orientation.getPitch(AngleUnit.DEGREES));
             telemetry.addData("Roll (Y)", "%.2f Deg.\n", orientation.getRoll(AngleUnit.DEGREES));
             telemetry.addData("PlaneServo Pos:", PlaneLaunchServo.getPosition());
-            //telemetry.addData("Claw Current Position:", ClawPos);
+            telemetry.addData("Current Idle Slide Power:", slidePowerStop);
+            telemetry.addData("Slide Elapsed Time Var:", slideElapsedTime);
 
             motorFrontLeft.setPower(frontleft);
             motorBackLeft.setPower(backleft);
             motorFrontRight.setPower(frontright);
             motorBackRight.setPower(backright);
-
-            //Slide1.setPower(slidepower);
-            //Slide2.setPower(slidepower);
 
             telemetry.update();
         }
