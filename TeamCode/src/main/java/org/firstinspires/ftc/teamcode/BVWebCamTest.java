@@ -3,27 +3,41 @@ package org.firstinspires.ftc.teamcode;
 import android.util.Size;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.tfod.Recognition;
 import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.VisionProcessor;
+import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.firstinspires.ftc.vision.tfod.TfodProcessor;
 
+import java.util.List;
+
+
+@TeleOp
 public class BVWebCamTest extends LinearOpMode {
 
     // Method for aprilTag init: initAprilTagProcessor()
     // Method for tfod init: initTfodProcessor
 
+    //Global vars for switch method
+    boolean tfodSwitch;
+    boolean tagSwitch;
+
     //Global VisionPortal for both processors
     VisionPortal webCam;
 
-    //aprilTagProcessor for aprilTag init
+    //aprilTagProcessor init
+    VisionProcessor tagProcessorSwitch;
     AprilTagProcessor tagProcessor;
 
-    //tfodProcessor for tfod init
+    //tfodProcessor init
+    VisionProcessor tfodProcessorSwitch;
     TfodProcessor tfodProcessor;
 
 
@@ -34,11 +48,59 @@ public class BVWebCamTest extends LinearOpMode {
         initAprilTagProcessor();
         initTfodProcessor();
 
+        //Active processor init
+        switchProcessor(false, true);
+
         waitForStart();
 
         while (opModeIsActive()) {
 
-            //Combine telemetry here
+            telemetry.addLine("Y to toggle tfod, A to toggle tag");
+
+            //Toggles between tfod and tag
+            if (gamepad1.y) {
+                switchProcessor(true, false);
+
+                List<Recognition> currentRecognitions = tfodProcessor.getRecognitions();
+                telemetry.addData("# Objects Detected", currentRecognitions.size());
+
+                // Step through the list of recognitions and display info for each one.
+                for (Recognition recognition : currentRecognitions) {
+                    double x = (recognition.getLeft() + recognition.getRight()) / 2 ;
+                    double y = (recognition.getTop()  + recognition.getBottom()) / 2 ;
+
+                    telemetry.addData(""," ");
+                    telemetry.addData("Image", "%s (%.0f %% Conf.)", recognition.getLabel(), recognition.getConfidence() * 100);
+                    telemetry.addData("- Position", "%.0f / %.0f", x, y);
+                    telemetry.addData("- Size", "%.0f x %.0f", recognition.getWidth(), recognition.getHeight());
+
+                }
+            } if (gamepad1.a) {
+                switchProcessor(false, true);
+
+                List<AprilTagDetection> currentDetections = tagProcessor.getDetections();
+                telemetry.addData("# AprilTags Detected", currentDetections.size());
+
+                // Step through the list of detections and display info for each one.
+                for (AprilTagDetection detection : currentDetections) {
+                    if (detection.metadata != null) {
+                        telemetry.addLine(String.format("\n==== (ID %d) %s", detection.id, detection.metadata.name));
+                        telemetry.addLine(String.format("XYZ %6.1f %6.1f %6.1f  (inch)", detection.ftcPose.x, detection.ftcPose.y, detection.ftcPose.z));
+                        telemetry.addLine(String.format("PRY %6.1f %6.1f %6.1f  (deg)", detection.ftcPose.pitch, detection.ftcPose.roll, detection.ftcPose.yaw));
+                        telemetry.addLine(String.format("RBE %6.1f %6.1f %6.1f  (inch, deg, deg)", detection.ftcPose.range, detection.ftcPose.bearing, detection.ftcPose.elevation));
+                    } else {
+                        telemetry.addLine(String.format("\n==== (ID %d) Unknown", detection.id));
+                        telemetry.addLine(String.format("Center %6.0f %6.0f   (pixels)", detection.center.x, detection.center.y));
+                    }
+                }
+
+            }
+
+            telemetry.addData("IsTfodToggled:", tfodSwitch);
+            telemetry.addData("IsTagToggled:", tagSwitch);
+
+            telemetry.update();
+
 
         }
 
@@ -110,7 +172,7 @@ public class BVWebCamTest extends LinearOpMode {
         builder.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
 
         // Choose a camera resolution. Not all cameras support all resolutions.
-        builder.setCameraResolution(new Size(640,480));
+        builder.setCameraResolution(new Size(640, 480));
 
         // Set the stream format; MJPEG uses less bandwidth than default YUY2.
         builder.setStreamFormat(VisionPortal.StreamFormat.YUY2);
@@ -134,4 +196,20 @@ public class BVWebCamTest extends LinearOpMode {
 
     }   // end method initTfod()
 
+    private void switchProcessor(boolean tfodSwitch, boolean tagSwitch) {
+
+        //Tfod logic
+        if (tfodSwitch) {
+            webCam.setProcessorEnabled(tfodProcessorSwitch, true);
+        } else {
+            webCam.setProcessorEnabled(tfodProcessorSwitch, false);
+        }
+
+        //Tag logic
+        if (tagSwitch) {
+            webCam.setProcessorEnabled(tagProcessorSwitch, true);
+        } else {
+            webCam.setProcessorEnabled(tagProcessorSwitch, false);
+        }
+    }
 }

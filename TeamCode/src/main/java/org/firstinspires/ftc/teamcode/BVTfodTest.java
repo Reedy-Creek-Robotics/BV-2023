@@ -35,7 +35,7 @@ public class BVTfodTest extends LinearOpMode {
     /**
      * The variable to store our instance of the TensorFlow Object Detection processor.
      */
-    private TfodProcessor tfod;
+    private TfodProcessor tfodProcessor;
 
     /**
      * The variable to store our instance of the vision portal.
@@ -81,7 +81,7 @@ public class BVTfodTest extends LinearOpMode {
      */
     private void telemetryTfod() {
 
-        List<Recognition> currentRecognitions = tfod.getRecognitions();
+        List<Recognition> currentRecognitions = tfodProcessor.getRecognitions();
         telemetry.addData("# Objects Detected", currentRecognitions.size());
 
         // Step through the list of recognitions and display info for each one.

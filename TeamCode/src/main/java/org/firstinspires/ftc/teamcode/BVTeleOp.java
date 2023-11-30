@@ -123,7 +123,7 @@ public class BVTeleOp extends LinearOpMode {
                 ClawServo.setPosition(OpenClaw);
             }
 */
-            /* Temp disabled for ftc jrs
+
             //roller intake
             if (gamepad1.left_bumper) {
                 PlaneLaunchServo.setPosition(0.0);
