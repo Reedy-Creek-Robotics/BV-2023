@@ -19,6 +19,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 import java.lang.Math;
+
 @TeleOp
 public class BVTeleOp extends LinearOpMode {
 
@@ -147,7 +148,7 @@ public class BVTeleOp extends LinearOpMode {
             }
             if (gamepad1.dpad_down) {
                 Slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                Slide.setTargetPosition(SlideCurrentPos -= 45000);
+                Slide.setTargetPosition(SlideCurrentPos -= 1000);
                 Slide.setPower(1);
             }
             if (!gamepad1.dpad_up && !gamepad1.dpad_down) {
