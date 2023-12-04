@@ -1,11 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
+import android.graphics.Bitmap;
 import android.util.Log;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
@@ -13,7 +13,6 @@ import org.opencv.core.MatOfPoint;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvCamera;
-import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvPipeline;
 import org.openftc.easyopencv.OpenCvWebcam;
 
@@ -23,57 +22,21 @@ import java.util.List;
 @Autonomous
 public class BVColorTest extends LinearOpMode{
 
+    //Webcam initialization
     OpenCvWebcam webcam;
 
-    OpenCvPipeline Processor;
-
-    public BVColorTest () {
-
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Camera"), cameraMonitorViewId);
-
-        // We set the viewport policy to optimized view so the preview doesn't appear 90 deg
-        // out when the RC activity is in portrait. We do our actual image processing assuming
-        // landscape orientation, though.
-        webcam.setViewportRenderingPolicy(OpenCvWebcam.ViewportRenderingPolicy.OPTIMIZE_VIEW);
-
-        webcam.setPipeline(Processor);
-
-        webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
-        {
-            @Override
-            public void onOpened()
-            {
-                Log.d("OPENCV", "WEBCAM STARTED STREAMING");
-                webcam.startStreaming(800,600);
-            }
-
-            @Override
-            public void onError(int errorCode)
-            {
-                /*
-                 * This will be called if the camera could not be opened
-                 */
-            }
-        });
-    }
-
-    @Override
-    public void runOpMode() throws InterruptedException {
-
-    }
-
-    public static class Processor extends OpenCvPipeline {
+    //Pipeline initialization
+    OpenCvPipeline Processor = new OpenCvPipeline() {
 
         /*
          * Some color constants
          */
-        static final Scalar BLUE = new Scalar(0, 0, 255);
-        static final Scalar RED = new Scalar(255, 0, 0);
-        static final Scalar PURPLE = new Scalar(255, 0, 255);
-        static final Scalar GREEN = new Scalar(0, 255, 0);
-        static final Scalar LOW_RED = new Scalar(130, 0, 0);
-        static final Scalar HIGH_RED = new Scalar(180, 0, 0);
+        final Scalar BLUE = new Scalar(0, 0, 255);
+        final Scalar RED = new Scalar(255, 0, 0);
+        final Scalar PURPLE = new Scalar(255, 0, 255);
+        final Scalar GREEN = new Scalar(0, 255, 0);
+        final Scalar LOW_RED = new Scalar(130, 0, 0);
+        final Scalar HIGH_RED = new Scalar(180, 0, 0);
 
         @Override
         public Mat processFrame(Mat input) {
@@ -113,9 +76,53 @@ public class BVColorTest extends LinearOpMode{
                 Imgproc.drawContours(output, contours, i, RED, -1, 2);
             }
 
-
-            //Returns input
+            //Returns output to webcam
             return output;
         }
+    };
+
+    public BVColorTest () {
+
+        /*Upon initializing the webcam with the OpenCvWebcam class via hardwareMap,
+        driver station returns an NullPointerException error (attempted to access
+        a null object).*/
+        webcam = hardwareMap.get(OpenCvWebcam.class, "Camera");
+
+        // We set the viewport policy to optimized view so the preview doesn't appear 90 deg
+        // out when the RC activity is in portrait. We do our actual image processing assuming
+        // landscape orientation, though.
+        webcam.setViewportRenderingPolicy(OpenCvWebcam.ViewportRenderingPolicy.OPTIMIZE_VIEW);
+
+        webcam.setPipeline(Processor);
+
+        webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
+        {
+            @Override
+            public void onOpened()
+            {
+                Log.d("OPENCV", "WEBCAM STARTED STREAMING");
+                webcam.startStreaming(800,600);
+            }
+
+            @Override
+            public void onError(int errorCode)
+            {
+                /*
+                 * This will be called if the camera could not be opened
+                 */
+            }
+        });
+
+    }
+
+    @Override
+    public void runOpMode() throws InterruptedException {
+
+        waitForStart();
+
+        while (opModeIsActive()) {
+
+        }
+
     }
 }

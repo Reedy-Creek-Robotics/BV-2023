@@ -29,7 +29,7 @@ import java.util.List;
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list.
  */
 @Autonomous
-
+@Disabled
 public class BVTfodTest extends LinearOpMode {
 
     /**

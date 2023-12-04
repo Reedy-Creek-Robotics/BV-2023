@@ -24,7 +24,6 @@ import java.lang.Math;
 public class BVTeleOp extends LinearOpMode {
 
     @Override
-
     public void runOpMode() throws InterruptedException {
         // Declare our motors
         // Make sure your ID's match your configuration
@@ -126,7 +125,7 @@ public class BVTeleOp extends LinearOpMode {
                 ClawServo.setPosition(OpenClaw);
             }
 */
-
+            /*
             //roller intake
             if (gamepad1.left_bumper) {
                 PlaneLaunchServo.setPosition(0.0);
