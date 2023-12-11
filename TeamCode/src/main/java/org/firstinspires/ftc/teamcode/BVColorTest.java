@@ -134,8 +134,10 @@ public class BVColorTest extends LinearOpMode{
 
             List<Mat> morphMerge = new ArrayList<>(Arrays.asList(morph1, morph2));
 
-            //Suspection of the Core.merge() function changing the data type
+            //Suspection of the Core.merge() function changing the data type. Blue version works perfectly fine.
             Core.merge(morphMerge, merge);
+
+            //Error message: "User code threw and uncaught exception: CvException - cv::exception:OpenCv(4.7.0-dev) /home/ci/opencv/modules/imgproc/src/contours.cpp: 197: error: (-210 Unsupported format or combination of formats) [Start]FindContours supports only CV_8UC1 images when mode != CV_RETR_FLOODFILL otherwise supports CV_32SC1 images only in function 'cvStartFindContours_Impl'"
 
             //Creates a list (array) of contours based on the now morphed image
             List<MatOfPoint> contours = new ArrayList<>();
