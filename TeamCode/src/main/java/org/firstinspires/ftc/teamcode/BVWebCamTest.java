@@ -25,6 +25,7 @@ import java.util.List;
 
 
 @TeleOp
+@Disabled
 public class BVWebCamTest extends LinearOpMode {
 
     private static final String TFOD_MODEL_ASSET = "CenterStage.tflite";

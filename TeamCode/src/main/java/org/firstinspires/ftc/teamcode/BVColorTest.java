@@ -1,10 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
-import android.graphics.Bitmap;
-import android.graphics.Camera;
 import android.util.Log;
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -22,6 +19,7 @@ import org.openftc.easyopencv.OpenCvPipeline;
 import org.openftc.easyopencv.OpenCvWebcam;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @TeleOp
@@ -29,34 +27,58 @@ public class BVColorTest extends LinearOpMode{
 
     //Global vars
 
-    //Color constants
-
     //RGB
-
     final Scalar BLUE = new Scalar(0, 0, 255);
     final Scalar RED = new Scalar(255, 0, 0);
     final Scalar PURPLE = new Scalar(255, 0, 255);
     final Scalar GREEN = new Scalar(0, 255, 0);
 
-    //HSV
-
+    //HSV Blue
     final Scalar LOW_BLUE = new Scalar(100, 100, 100);
     final Scalar HIGH_BLUE = new Scalar(130, 255, 255);
 
-    List<MatOfPoint> contours = new ArrayList<>();
+    //HSV Red [UNTESTED VALUES]
+    final Scalar LOW_RED1 = new Scalar(248, 100, 100);
+    final Scalar HIGH_RED1 = new Scalar(0, 255, 255);
+
+    final Scalar LOW_RED2 = new Scalar(0, 100, 100);
+    final Scalar HIGH_RED2 = new Scalar(5, 255, 255);
+
+    List<MatOfPoint> contoursBlue = new ArrayList<>();
 
     //Stores the converted RGB to HSV Mat
     Mat hsvMat = new Mat();
     //Stores a 'bitmap' of the values in range of color
     Mat inRangeMat = new Mat();
     //Designs how the morph var is stored
-    Mat kernel = Mat.ones(7, 7, CvType.CV_8U);
+    Mat kernel = Mat.ones(7, 7, CvType.CV_8UC1);
     //Stores the morphed Mat which has most sound removed
     Mat morph = new Mat();
     //Stores the information of a contours' image topology, unused
     Mat hierarchy = new Mat();
-    //Output; stores the output
+    //Output; stores the output for drawing contours if wanted
     Mat output = new Mat();
+
+    //--------------------------------------------------------
+
+    //Red Processor Vars
+    //Two vars of each since we are creating two comparisons then merging them.
+    //Refer to blue processor comments for descriptions of mats.
+
+    Mat hsvMat1 = new Mat();
+    Mat hsvMat2 = new Mat();
+
+    Mat inRangeMat1 = new Mat();
+    Mat inRangeMat2 = new Mat();
+
+    Mat morph1 = new Mat();
+    Mat morph2 = new Mat();
+
+    List<MatOfPoint> contoursRed = new ArrayList<>();
+    Mat merge = new Mat();
+
+
+
 
     //--------------------------------------------------------
 
@@ -64,14 +86,10 @@ public class BVColorTest extends LinearOpMode{
     OpenCvWebcam webcam;
 
     //Pipeline initialization
-    OpenCvPipeline Processor = new OpenCvPipeline() {
+    OpenCvPipeline blueProcessor = new OpenCvPipeline() {
 
         @Override
         public Mat processFrame(Mat input) {
-
-            //Variables for processFrame()
-
-            //-----------------------------------------------------
 
             //Converts all color from RGB to HSV
             Imgproc.cvtColor(input, hsvMat, Imgproc.COLOR_RGB2HSV);
@@ -85,13 +103,51 @@ public class BVColorTest extends LinearOpMode{
 
             //Creates a list (array) of contours based on the now morphed image
             List<MatOfPoint> contours = new ArrayList<>();
-            Imgproc.findContours(morph, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
 
-            BVColorTest.this.contours = contours;
+            Imgproc.findContours(morph, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
+            BVColorTest.this.contoursBlue = contours;
 
             //Returns input to webcam
             return input;
         }
+    };
+
+    OpenCvPipeline redProcessor = new OpenCvPipeline() {
+
+        @Override
+        public Mat processFrame(Mat input) {
+
+            //Converts all color from RGB to HSV
+            Imgproc.cvtColor(input, hsvMat1, Imgproc.COLOR_RGB2HSV);
+            Imgproc.cvtColor(input, hsvMat2, Imgproc.COLOR_RGB2HSV);
+
+            //Creates a bitmap based on if the color is within the two scalar values
+            Core.inRange(hsvMat1, LOW_RED1, HIGH_RED1, inRangeMat1);
+            Core.inRange(hsvMat2, LOW_RED2, HIGH_RED2, inRangeMat2);
+
+            //Removes excess sound to create contours easily
+            Imgproc.morphologyEx(inRangeMat1, morph1, Imgproc.MORPH_CLOSE, kernel);
+            Imgproc.morphologyEx(morph1, morph1, Imgproc.MORPH_OPEN, kernel);
+
+            Imgproc.morphologyEx(inRangeMat2, morph2, Imgproc.MORPH_CLOSE, kernel);
+            Imgproc.morphologyEx(morph2, morph2, Imgproc.MORPH_OPEN, kernel);
+
+            List<Mat> morphMerge = new ArrayList<>(Arrays.asList(morph1, morph2));
+
+            //Suspection of the Core.merge() function changing the data type
+            Core.merge(morphMerge, merge);
+
+            //Creates a list (array) of contours based on the now morphed image
+            List<MatOfPoint> contours = new ArrayList<>();
+
+            Imgproc.findContours(merge, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
+
+            BVColorTest.this.contoursRed = contours;
+
+            //Returns input to webcam
+            return input;
+        }
+
     };
 
     @Override
@@ -99,8 +155,6 @@ public class BVColorTest extends LinearOpMode{
 
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Camera"), cameraMonitorViewId);
-
-        webcam.setPipeline(Processor);
 
         webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
         {
@@ -120,23 +174,39 @@ public class BVColorTest extends LinearOpMode{
             }
         });
 
-        while (opModeInInit()) {for (int i = 0; i < contours.size(); i++) {
-            Imgproc.drawContours(output, contours, i, RED, 1, 1);
-            }
-        }
-
         waitForStart();
 
         while (opModeIsActive()) {
 
-            telemetry.addData("Contours Detected", contours.size());
+            if (gamepad1.x) {
+                telemetry.addLine("Detecting BLUE Contours");
 
-            List<MatOfPoint> contours = this.contours;
-            for (int i = 0; i < contours.size(); i++) {
-                telemetry.addData("Contour Points: ", contours);
+                webcam.setPipeline(blueProcessor);
+
+                List<MatOfPoint> contoursBlue = this.contoursBlue;
+
+                telemetry.addData("Contours Detected", contoursBlue.size());
+
+                for (int i = 0; i < contoursBlue.size(); i++) {
+                    telemetry.addData("Contour Points: ", contoursBlue);
+                }
+
+            } if (gamepad1.b) {
+                telemetry.addLine("Detecting RED Contours");
+
+                webcam.setPipeline(redProcessor);
+
+                List<MatOfPoint> contoursRed = this.contoursRed;
+
+                telemetry.addData("Contours Detected", contoursRed.size());
+
+                for (int i = 0; i < contoursBlue.size(); i++) {
+                    telemetry.addData("Contour Points: ", contoursRed);
+                }
             }
 
             telemetry.update();
+
         }
     }
 }
