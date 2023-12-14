@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.opencv.core.Core;
@@ -17,7 +18,7 @@ import java.util.List;
 
 @TeleOp
 @Disabled
-public class BVColorProcessor {
+public class BVColorProcessor extends LinearOpMode {
 
     //RGB
     final Scalar BLUE = new Scalar(0, 0, 255);
@@ -143,4 +144,9 @@ public class BVColorProcessor {
             return input;
         }
     };
+
+    @Override
+    public void runOpMode() throws InterruptedException {
+
+    }
 }
