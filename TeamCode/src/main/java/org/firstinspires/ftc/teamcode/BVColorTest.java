@@ -1,5 +1,8 @@
 package org.firstinspires.ftc.teamcode;
 
+import static org.opencv.core.CvType.CV_32F;
+import static org.opencv.core.CvType.CV_32S;
+
 import android.graphics.Color;
 import android.util.Log;
 
@@ -59,6 +62,8 @@ public class BVColorTest extends LinearOpMode{
     Mat hierarchy = new Mat();
     //Output; stores the output for drawing contours if wanted
     Mat output = new Mat();
+    //Blue contour area; stores a different contour area value depending on the iteration of the for loop it is on
+    double blueContourArea;
 
     //--------------------------------------------------------
 
@@ -75,9 +80,11 @@ public class BVColorTest extends LinearOpMode{
     Mat morph1 = new Mat();
     Mat morph2 = new Mat();
 
-    List<MatOfPoint> contoursRed = new ArrayList<>();
-    Mat merge = new Mat();
+    double redContourArea;
 
+    List<MatOfPoint> contoursRed = new ArrayList<>();
+
+    Mat merge = new Mat();
 
 
 
@@ -106,6 +113,15 @@ public class BVColorTest extends LinearOpMode{
             List<MatOfPoint> contours = new ArrayList<>();
 
             Imgproc.findContours(morph, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
+
+            for (int i = 0; i < contoursBlue.size(); i++) {
+                blueContourArea = Imgproc.contourArea(contoursBlue.get(i));
+
+                if (blueContourArea > 1000) {
+                    telemetry.addData("Element Detected! Area of Element:", blueContourArea);
+                }
+            }
+
             BVColorTest.this.contoursBlue = contours;
 
             //Returns input to webcam
@@ -137,8 +153,17 @@ public class BVColorTest extends LinearOpMode{
 
             //Creates a list (array) of contours based on the now morphed image
             List<MatOfPoint> contours = new ArrayList<>();
+            //Variable for the red contour area based on the contours
 
             Imgproc.findContours(merge, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
+
+            for (int i = 0; i < contoursRed.size(); i++) {
+                redContourArea = Imgproc.contourArea(contoursRed.get(i));
+
+                if (redContourArea > 1000) {
+                    telemetry.addData("Element Detected! Area of Element:", redContourArea);
+                }
+            }
 
             BVColorTest.this.contoursRed = contours;
 
@@ -161,6 +186,7 @@ public class BVColorTest extends LinearOpMode{
             {
                 Log.d("OPENCV", "WEBCAM STARTED STREAMING");
                 webcam.startStreaming(800,600, OpenCvCameraRotation.UPRIGHT);
+                webcam.setPipeline(redProcessor);
             }
 
             @Override
@@ -198,8 +224,8 @@ public class BVColorTest extends LinearOpMode{
 
                 telemetry.addData("Contours Detected", contoursRed.size());
 
-                for (int i = 0; i < contoursRed.size(); i++) {
-                    telemetry.addData("Contour Points: ", contoursRed);
+                for (int i = 0; i < contoursBlue.size(); i++) {
+                    telemetry.addData("Contour Points: ", contoursBlue);
                 }
             }
 
