@@ -2,6 +2,9 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import static org.firstinspires.ftc.teamcode.BVColorProcessor.blueContourArea;
+import static org.firstinspires.ftc.teamcode.BVColorProcessor.blueProcessor;
+import static org.firstinspires.ftc.teamcode.BVColorProcessor.contoursBlue;
+import static org.firstinspires.ftc.teamcode.BVColorProcessor.webcam;
 
 import org.opencv.core.MatOfPoint;
 
@@ -18,9 +21,7 @@ public class BVColorAutoBlue extends LinearOpMode {
 
                 telemetry.addLine("Detecting BLUE Contours");
 
-                BVColorProcessor.webcam.setPipeline(BVColorProcessor.blueProcessor);
-
-                List<MatOfPoint> contoursBlue = BVColorProcessor.contoursBlue;
+                webcam.setPipeline(blueProcessor);
 
                 telemetry.addData("Contours Detected", contoursBlue.size());
 

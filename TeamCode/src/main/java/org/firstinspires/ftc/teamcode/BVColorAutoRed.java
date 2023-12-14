@@ -8,10 +8,6 @@ import static org.firstinspires.ftc.teamcode.BVColorProcessor.contoursRed;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.opencv.core.MatOfPoint;
-
-import java.util.List;
-
 @Autonomous
 public class BVColorAutoRed extends LinearOpMode {
 
