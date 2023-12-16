@@ -26,6 +26,9 @@ public class BVColorAutoRed extends LinearOpMode {
     final Scalar LOW_RED1 = new Scalar(248, 100, 100);
     final Scalar HIGH_RED1 = new Scalar(0, 255, 255);
 
+    final Scalar TEST_HIGH = new Scalar(255, 255, 255);
+    final Scalar TEST_LOW = new Scalar(0, 0, 0);
+
     final Scalar LOW_RED2 = new Scalar(0, 100, 100);
     final Scalar HIGH_RED2 = new Scalar(5, 255, 255);
 
@@ -58,72 +61,74 @@ public class BVColorAutoRed extends LinearOpMode {
 
     //--------------------------------------------------------
 
-    OpenCvWebcam webcam;
-
-    OpenCvPipeline redProcessor = new OpenCvPipeline() {
-
-        @Override
-        public Mat processFrame(Mat input) {
-
-            //Converts all color from RGB to HSV
-            Imgproc.cvtColor(input, hsvMat1, Imgproc.COLOR_RGB2HSV);
-            Imgproc.cvtColor(input, hsvMat2, Imgproc.COLOR_RGB2HSV);
-
-            //Creates a bitmap based on if the color is within the two scalar values
-            Core.inRange(hsvMat1, LOW_RED1, HIGH_RED1, inRangeMat1);
-            Core.inRange(hsvMat2, LOW_RED2, HIGH_RED2, inRangeMat2);
-
-            //Removes excess sound to create contours easily
-            Imgproc.morphologyEx(inRangeMat1, morph1, Imgproc.MORPH_CLOSE, kernel);
-            Imgproc.morphologyEx(morph1, morph1, Imgproc.MORPH_OPEN, kernel);
-
-            Imgproc.morphologyEx(inRangeMat2, morph2, Imgproc.MORPH_CLOSE, kernel);
-            Imgproc.morphologyEx(morph2, morph2, Imgproc.MORPH_OPEN, kernel);
-
-            Core.bitwise_or(morph1, morph2, merge);
-
-            //Creates a list (array) of contours based on the now morphed image
-            List<MatOfPoint> contours = new ArrayList<>();
-            //Variable for the red contour area based on the contours
-
-            Imgproc.findContours(merge, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
-
-            for (int i = 0; i < contoursRed.size(); i++) {
-                redContourArea = Imgproc.contourArea(contoursRed.get(i));
-            }
-
-            //Returns input to webcam
-            return input;
-        }
-    };
-
     public void runOpMode() throws InterruptedException {
+
+        OpenCvWebcam webcam;
+
+        OpenCvPipeline redProcessor = new OpenCvPipeline() {
+
+            @Override
+            public Mat processFrame(Mat input) {
+
+                //Converts all color from RGB to HSV
+                Imgproc.cvtColor(input, hsvMat1, Imgproc.COLOR_RGB2HSV);
+                Imgproc.cvtColor(input, hsvMat2, Imgproc.COLOR_RGB2HSV);
+
+                //Creates a bitmap based on if the color is within the two scalar values
+                Core.inRange(hsvMat1, LOW_RED1, HIGH_RED1, inRangeMat1);
+                Core.inRange(hsvMat2, LOW_RED2, HIGH_RED2, inRangeMat2);
+
+                //Removes excess sound to create contours easily
+                Imgproc.morphologyEx(inRangeMat1, morph1, Imgproc.MORPH_CLOSE, kernel);
+                Imgproc.morphologyEx(morph1, morph1, Imgproc.MORPH_OPEN, kernel);
+
+                Imgproc.morphologyEx(inRangeMat2, morph2, Imgproc.MORPH_CLOSE, kernel);
+                Imgproc.morphologyEx(morph2, morph2, Imgproc.MORPH_OPEN, kernel);
+
+                //Merges the two mats in a bitwise_or fashion
+                Core.bitwise_or(morph1, morph2, merge);
+
+                //Creates a list (array) of contours based on the now morphed image
+                List<MatOfPoint> contours = new ArrayList<>();
+                //Variable for the red contour area based on the contours
+
+                Imgproc.findContours(merge, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
+
+                for (int i = 0; i < contoursRed.size(); i++) {
+                    redContourArea = Imgproc.contourArea(contoursRed.get(i));
+                }
+
+                //Returns input to webcam
+                return input;
+            }
+        };
 
         int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
         webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Camera"), cameraMonitorViewId);
 
         webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+
             @Override
             public void onOpened() {
-                webcam.startStreaming(800, 600, OpenCvCameraRotation.UPRIGHT);
-                webcam.setPipeline(redProcessor);
-
                 telemetry.addLine("INITIALIZATION SUCCESSFUL");
                 telemetry.update();
 
+                webcam.startStreaming(800, 600, OpenCvCameraRotation.UPRIGHT);
             }
 
             @Override
             public void onError(int errorCode) {
-
                 telemetry.addData("ERROR UPON INITIALIZATION:", errorCode);
                 telemetry.update();
-
             }
         });
 
         while (opModeInInit()) {
+            telemetry.addLine("Init loop active");
+            telemetry.update();
             for (int i = 0; i < contoursRed.size(); i++) {
+                telemetry.addLine("For loop in init loop active");
+                telemetry.update();
                 Imgproc.drawContours(merge, contoursRed, i, BLUE, 2, Imgproc.LINE_8);
             }
         }
@@ -134,23 +139,19 @@ public class BVColorAutoRed extends LinearOpMode {
 
         while (opModeIsActive()) {
 
-            List<MatOfPoint> contours = new ArrayList<>();
+            webcam.setPipeline(redProcessor);
 
             telemetry.addLine("Detecting RED Contours");
 
-            Imgproc.findContours(merge, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
-
-            for (int i = 0; i < contoursRed.size(); i++) {
-                redContourArea = Imgproc.contourArea(contoursRed.get(i));
-            }
+            telemetry.addData("Webcam pipeline activity", webcam.getPipelineTimeMs());
 
             telemetry.addData("Contours Detected", contoursRed.size());
 
             for (int i = 0; i < contoursRed.size(); i++) {
-
-                telemetry.addData("Contour Points: ", contoursRed);
-
-                if (redContourArea > 1000 && gamepad1.x) {
+                telemetry.addLine("For loop in while loop active");
+                telemetry.addData("Current redContourArea", redContourArea);
+                telemetry.update();
+                if (redContourArea > 1000) {
                     telemetry.addData("Element Detected! Area of Element:", redContourArea);
                 }
             }
