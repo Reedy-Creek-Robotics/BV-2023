@@ -26,9 +26,6 @@ public class BVColorAutoRed extends LinearOpMode {
     final Scalar LOW_RED1 = new Scalar(248, 100, 100);
     final Scalar HIGH_RED1 = new Scalar(0, 255, 255);
 
-    final Scalar TEST_HIGH = new Scalar(255, 255, 255);
-    final Scalar TEST_LOW = new Scalar(0, 0, 0);
-
     final Scalar LOW_RED2 = new Scalar(0, 100, 100);
     final Scalar HIGH_RED2 = new Scalar(5, 255, 255);
 
@@ -52,8 +49,6 @@ public class BVColorAutoRed extends LinearOpMode {
     Mat hierarchy = new Mat();
 
     Mat kernel = Mat.ones(7, 7, CvType.CV_8UC1);
-
-    double redContourArea;
 
     List<MatOfPoint> contoursRed = new ArrayList<>();
 
@@ -95,10 +90,6 @@ public class BVColorAutoRed extends LinearOpMode {
 
                 BVColorAutoRed.this.contoursRed = contours;
 
-                for (int i = 0; i < contours.size(); i++) {
-                    BVColorAutoRed.this.redContourArea = Imgproc.contourArea(contours.get(i));
-                }
-
                 //Returns input to webcam
                 return input;
             }
@@ -124,26 +115,11 @@ public class BVColorAutoRed extends LinearOpMode {
             }
         });
 
-        while (opModeInInit()) {
-
-            List<MatOfPoint> contoursRed = BVColorAutoRed.this.contoursRed;
-
-            for (int i = 0; i < contoursRed.size(); i++) {
-                Imgproc.drawContours(merge, contoursRed, i, BLUE, 2, Imgproc.LINE_8);
-
-                telemetry.addLine("Drawing RED Contours...");
-                telemetry.update();
-            }
-        }
-
         waitForStart();
-
-        telemetry.clearAll();
 
         while (opModeIsActive()) {
 
             List<MatOfPoint> contoursRed = BVColorAutoRed.this.contoursRed;
-            double redContourArea = BVColorAutoRed.this.redContourArea;
 
             webcam.setPipeline(redProcessor);
 
@@ -154,10 +130,10 @@ public class BVColorAutoRed extends LinearOpMode {
             telemetry.addData("Contours Detected", contoursRed.size());
 
             for (int i = 0; i < contoursRed.size(); i++) {
-                telemetry.addData("Current redContourArea", redContourArea);
-                telemetry.update();
-                if (redContourArea > 1000) {
-                    telemetry.addData("Element Detected! Area of Element:", redContourArea);
+                if (Imgproc.contourArea(contoursRed.get(i)) > 1000) {
+                    telemetry.addData("Element Detected! Area of Element:", Imgproc.contourArea(contoursRed.get(i)));
+                } else {
+                    telemetry.addData("Red Contour Area", Imgproc.contourArea(contoursRed.get(i)));
                 }
             }
 
