@@ -90,12 +90,13 @@ public class BVColorAutoRed extends LinearOpMode {
 
                 //Creates a list (array) of contours based on the now morphed image
                 List<MatOfPoint> contours = new ArrayList<>();
-                //Variable for the red contour area based on the contours
 
                 Imgproc.findContours(merge, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
 
-                for (int i = 0; i < contoursRed.size(); i++) {
-                    redContourArea = Imgproc.contourArea(contoursRed.get(i));
+                BVColorAutoRed.this.contoursRed = contours;
+
+                for (int i = 0; i < contours.size(); i++) {
+                    BVColorAutoRed.this.redContourArea = Imgproc.contourArea(contours.get(i));
                 }
 
                 //Returns input to webcam
@@ -124,12 +125,14 @@ public class BVColorAutoRed extends LinearOpMode {
         });
 
         while (opModeInInit()) {
-            telemetry.addLine("Init loop active");
-            telemetry.update();
+
+            List<MatOfPoint> contoursRed = BVColorAutoRed.this.contoursRed;
+
             for (int i = 0; i < contoursRed.size(); i++) {
-                telemetry.addLine("For loop in init loop active");
-                telemetry.update();
                 Imgproc.drawContours(merge, contoursRed, i, BLUE, 2, Imgproc.LINE_8);
+
+                telemetry.addLine("Drawing RED Contours...");
+                telemetry.update();
             }
         }
 
@@ -138,6 +141,9 @@ public class BVColorAutoRed extends LinearOpMode {
         telemetry.clearAll();
 
         while (opModeIsActive()) {
+
+            List<MatOfPoint> contoursRed = BVColorAutoRed.this.contoursRed;
+            double redContourArea = BVColorAutoRed.this.redContourArea;
 
             webcam.setPipeline(redProcessor);
 
@@ -148,7 +154,6 @@ public class BVColorAutoRed extends LinearOpMode {
             telemetry.addData("Contours Detected", contoursRed.size());
 
             for (int i = 0; i < contoursRed.size(); i++) {
-                telemetry.addLine("For loop in while loop active");
                 telemetry.addData("Current redContourArea", redContourArea);
                 telemetry.update();
                 if (redContourArea > 1000) {
