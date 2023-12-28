@@ -28,10 +28,13 @@ public class BVTeleOp extends LinearOpMode {
         // Declare our motors
         // Make sure your ID's match your configuration
         ElapsedTime runtime = new ElapsedTime();
-        DcMotor Slide = hardwareMap.get(DcMotor.class, "Slide");
-        CRServo RollerIntake = hardwareMap.get(CRServo.class, "RollerIntake");
         ElapsedTime timeSinceManualMode = new ElapsedTime();
+        DcMotor Slide = hardwareMap.get(DcMotor.class, "Slide");
+        DcMotor SupensionSlide = hardwareMap.get(DcMotor.class, "SuspensionSlide");
         Servo PlaneLaunchServo = hardwareMap.get(Servo.class, "LaunchServo");
+        CRServo RollerIntake = hardwareMap.get(CRServo.class, "RollerIntake");
+        Servo ClawRotation = hardwareMap.get(Servo.class, "ClawRotation");
+        Servo Claw = hardwareMap.get(Servo.class, "Claw");
 
         DcMotor motorFrontLeft = hardwareMap.dcMotor.get("FrontLeft");
         DcMotor motorBackLeft = hardwareMap.dcMotor.get("BackLeft");
@@ -118,21 +121,31 @@ public class BVTeleOp extends LinearOpMode {
             double frontright = (rotY - rotX - rx) / denominator;
             double backright = (rotY + rotX - rx) / denominator;
 
-            /*if (gamepad2.left_bumper && runtime.milliseconds() > 1000) {
-                ClawServo.setPosition(ClosedClaw);
+            //slide transfer
+            double ytransfer = gamepad2.right_stick_y;
+            Slide.setPower(ytransfer);
+
+            //suspension slide
+
+            double travel = gamepad2.left_stick_y;
+            SupensionSlide.setPower(travel);
+
+            //claw
+            if (gamepad2.left_bumper && runtime.milliseconds() > 1000) {
+                Claw.setPosition(ClosedClaw);
             }
             if (gamepad2.right_bumper && runtime.milliseconds() > 1000) {
-                ClawServo.setPosition(OpenClaw);
+                Claw.setPosition(OpenClaw);
             }
-*/
-            /*
-            //roller intake
+
+            //plane launcher
             if (gamepad1.left_bumper) {
                 PlaneLaunchServo.setPosition(0.0);
             }
             if (gamepad1.right_bumper) {
                 PlaneLaunchServo.setPosition(1.0);
             }
+            //roller intake
             if (gamepad1.a) {
                 RollerIntake.setPower(0.5);
             }
@@ -142,6 +155,11 @@ public class BVTeleOp extends LinearOpMode {
             if (gamepad1.x) {
                 RollerIntake.setPower(0);
             }
+
+
+
+            /*
+
             if (gamepad1.dpad_up) {
                 Slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 Slide.setTargetPosition(SlideCurrentPos += 1000);
