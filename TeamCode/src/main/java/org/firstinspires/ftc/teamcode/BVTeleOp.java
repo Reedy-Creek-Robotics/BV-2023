@@ -79,7 +79,7 @@ public class BVTeleOp extends LinearOpMode {
         motorBackRight.setDirection(DcMotorSimple.Direction.FORWARD);
         motorFrontRight.setDirection(DcMotorSimple.Direction.FORWARD);
         //Switch direction if servo runs backwards
-        PlaneLaunchServo.setDirection(Servo.Direction.FORWARD);
+        PlaneLaunchServo.setDirection(Servo.Direction.REVERSE);
         PlaneLaunchServo.setPosition(PlaneLaunchServo.getPosition());
         Slide.setDirection(DcMotor.Direction.REVERSE);
         Slide.setTargetPosition(0);
@@ -122,8 +122,8 @@ public class BVTeleOp extends LinearOpMode {
             double backright = (rotY + rotX - rx) / denominator;
 
             //slide transfer
-            double ytransfer = gamepad2.right_stick_y;
-            Slide.setPower(ytransfer);
+            double transfer = gamepad2.right_stick_y;
+            Slide.setPower(transfer);
 
             //suspension slide
 
