@@ -27,6 +27,11 @@ public class BVTeleOp extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         // Declare our motors
         // Make sure your ID's match your configuration
+
+        //we edited the hardware map on the driver station, that could be cause of problems
+        //can you check if the hardwaremap is created correctly, or atleast the way its called in this class.
+        //I feel like I mess things up in the hardwareMap.
+
         ElapsedTime runtime = new ElapsedTime();
         ElapsedTime timeSinceManualMode = new ElapsedTime();
         DcMotor Slide = hardwareMap.get(DcMotor.class, "Slide");
@@ -122,15 +127,17 @@ public class BVTeleOp extends LinearOpMode {
             double backright = (rotY + rotX - rx) / denominator;
 
             //slide transfer
+            //seems like it should work, but the code didn't move anything, the slide stayed stationary
             double transfer = gamepad2.right_stick_y;
             Slide.setPower(transfer);
 
             //suspension slide
-
+            //worked, just the hardware side needs work on
             double travel = gamepad2.left_stick_y;
             SupensionSlide.setPower(travel);
 
             //claw
+            // claw works, the value need to be change though
             if (gamepad2.left_bumper && runtime.milliseconds() > 1000) {
                 Claw.setPosition(ClosedClaw);
             }
@@ -138,14 +145,21 @@ public class BVTeleOp extends LinearOpMode {
                 Claw.setPosition(OpenClaw);
             }
 
+            //rotation for claw
+            //I haven't written anything yet, I want to get some of the other stuff working before we rotate this piece.
+
             //plane launcher
+            //Dosen't work any more, we tried but nothing would happen, maybe it was working, but there weren't
+            //any clear signs of functioning
             if (gamepad1.left_bumper) {
                 PlaneLaunchServo.setPosition(0.0);
             }
             if (gamepad1.right_bumper) {
                 PlaneLaunchServo.setPosition(1.0);
             }
+
             //roller intake
+            //don't worry about this, worked perfectly
             if (gamepad1.a) {
                 RollerIntake.setPower(0.5);
             }
@@ -155,6 +169,16 @@ public class BVTeleOp extends LinearOpMode {
             if (gamepad1.x) {
                 RollerIntake.setPower(0);
             }
+
+            //cookie monster
+            //we don't have anything for this, looks like we forgot a part for the cookie monster
+            //can't conenct it the the expansion hub; dont have the adpater
+            //easy to program, button controls similar to the roller intake
+
+
+            //we amy want to automate some tasks, I don't know how comfortable the drive team will be
+            //or if the programming will be easy
+            //first lets get some of this to work first.
 
 
 
