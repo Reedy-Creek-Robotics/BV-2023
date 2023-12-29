@@ -84,11 +84,11 @@ public class BVTeleOp extends LinearOpMode {
         motorBackRight.setDirection(DcMotorSimple.Direction.FORWARD);
         motorFrontRight.setDirection(DcMotorSimple.Direction.FORWARD);
         //Switch direction if servo runs backwards
-        PlaneLaunchServo.setDirection(Servo.Direction.REVERSE);
+        PlaneLaunchServo.setDirection(Servo.Direction.FORWARD);
         PlaneLaunchServo.setPosition(PlaneLaunchServo.getPosition());
         Slide.setDirection(DcMotor.Direction.REVERSE);
-        Slide.setTargetPosition(0);
-        Slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        //Slide.setTargetPosition(0);
+        //Slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         waitForStart();
 
@@ -101,7 +101,7 @@ public class BVTeleOp extends LinearOpMode {
             double y = -gamepad1.left_stick_y; // Remember, this is reversed!
             double x = gamepad1.left_stick_x * correctionFactor; // Counteract imperfect strafing
             double rx = gamepad1.right_stick_x;
-            int SlideCurrentPos = Slide.getCurrentPosition();
+            //int SlideCurrentPos = Slide.getCurrentPosition();
             //double slideY = gamepad2.right_stick_y;
 
             // Denominator is the largest motor power (absolute value) or 1
@@ -170,16 +170,29 @@ public class BVTeleOp extends LinearOpMode {
                 RollerIntake.setPower(0);
             }
 
-            //cookie monster
+            /*cookie monster
             //we don't have anything for this, looks like we forgot a part for the cookie monster
             //can't conenct it the the expansion hub; dont have the adpater
             //easy to program, button controls similar to the roller intake
-
+            if (gamepad2.a) {
+                SpinTake.setPower(1);
+            }
+            if (gamepad1.b) {
+                SpinTake.setPower(-1);
+            }
+            if (gamepad1.x) {
+                SpinTake.setPower(0);
+            }
+            */
 
             //we amy want to automate some tasks, I don't know how comfortable the drive team will be
             //or if the programming will be easy
             //first lets get some of this to work first.
-
+            //Ex: SpinTake (ON) -> RollerTake (ON) -> Claw(OPEN) -> We control slide pos (slide go up)
+            //-> Claw auto rotates to the degree we want -> we control open and close of claw
+            //-> We control slide pos (slide go down) -> claw goes to orignal pos (parallel to ground)
+            //-> Claw opens -> when drive presses trasnfers system, claw grabbs the pixel and reapts scoring.
+            //-> Repeat
 
 
             /*
