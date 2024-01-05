@@ -36,6 +36,7 @@ public class BVTeleOp extends LinearOpMode {
         ElapsedTime timeSinceManualMode = new ElapsedTime();
         DcMotor Slide = hardwareMap.get(DcMotor.class, "Slide");
         DcMotor SupensionSlide = hardwareMap.get(DcMotor.class, "SuspensionSlide");
+        DcMotor SpinTake = hardwareMap.get(DcMotor.class, "CookieMonster");
         Servo PlaneLaunchServo = hardwareMap.get(Servo.class, "LaunchServo");
         CRServo RollerIntake = hardwareMap.get(CRServo.class, "RollerIntake");
         Servo ClawRotation = hardwareMap.get(Servo.class, "ClawRotation");
@@ -67,9 +68,10 @@ public class BVTeleOp extends LinearOpMode {
 
         int CurrentPosition;
         int SlideStop = 0;
-        double ClawPos;
-        double OpenClaw = 0.5;
-        double ClosedClaw = 0.33;
+        double clawPosition = ClawRotation.getPosition();
+
+        double OpenClaw = 0.05;
+        double ClosedClaw = 0;
         double RollerPow = 0.1;
         double CurrentPower = 0.8;
         int currentSlideTick = 0;
@@ -84,15 +86,17 @@ public class BVTeleOp extends LinearOpMode {
         motorBackRight.setDirection(DcMotorSimple.Direction.FORWARD);
         motorFrontRight.setDirection(DcMotorSimple.Direction.FORWARD);
         //Switch direction if servo runs backwards
-        PlaneLaunchServo.setDirection(Servo.Direction.FORWARD);
-        PlaneLaunchServo.setPosition(PlaneLaunchServo.getPosition());
-        Slide.setDirection(DcMotor.Direction.REVERSE);
-        //Slide.setTargetPosition(0);
-        //Slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        RollerIntake.setDirection(DcMotorSimple.Direction.REVERSE);
+        SpinTake.setDirection(DcMotorSimple.Direction.REVERSE);
+        PlaneLaunchServo.setDirection(Servo.Direction.REVERSE);
+         PlaneLaunchServo.setPosition(PlaneLaunchServo.getPosition());
+         Claw.setPosition(Claw.getPosition());
+         Claw.setDirection(Servo.Direction.REVERSE);
+        SupensionSlide.setDirection(DcMotor.Direction.REVERSE);
+        SupensionSlide.setTargetPosition(0);
+        SupensionSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         waitForStart();
-
-        if (isStopRequested()) return;
 
         while (opModeIsActive()) {
 
@@ -101,13 +105,12 @@ public class BVTeleOp extends LinearOpMode {
             double y = -gamepad1.left_stick_y; // Remember, this is reversed!
             double x = gamepad1.left_stick_x * correctionFactor; // Counteract imperfect strafing
             double rx = gamepad1.right_stick_x;
-            //int SlideCurrentPos = Slide.getCurrentPosition();
+            int SlideCurrentPos = SupensionSlide.getCurrentPosition();
             //double slideY = gamepad2.right_stick_y;
 
             // Denominator is the largest motor power (absolute value) or 1
             // This ensures all the powers maintain the same ratio, but only when
             // at least one is out of the range [-1, 1]
-
 
             float botHeading = -imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.RADIANS).firstAngle;
 
@@ -127,91 +130,27 @@ public class BVTeleOp extends LinearOpMode {
             double backright = (rotY + rotX - rx) / denominator;
 
             //slide transfer
-            //seems like it should work, but the code didn't move anything, the slide stayed stationary
-            double transfer = gamepad2.right_stick_y;
-            Slide.setPower(transfer);
+            //Now works
+            Slide.setPower(gamepad2.right_stick_y);
 
             //suspension slide
             //worked, just the hardware side needs work on
-            double travel = gamepad2.left_stick_y;
-            SupensionSlide.setPower(travel);
-
-            //claw
-            // claw works, the value need to be change though
-            if (gamepad2.left_bumper && runtime.milliseconds() > 1000) {
-                Claw.setPosition(ClosedClaw);
-            }
-            if (gamepad2.right_bumper && runtime.milliseconds() > 1000) {
-                Claw.setPosition(OpenClaw);
-            }
-
-            //rotation for claw
-            //I haven't written anything yet, I want to get some of the other stuff working before we rotate this piece.
-
-            //plane launcher
-            //Dosen't work any more, we tried but nothing would happen, maybe it was working, but there weren't
-            //any clear signs of functioning
-            if (gamepad1.left_bumper) {
-                PlaneLaunchServo.setPosition(0.0);
-            }
-            if (gamepad1.right_bumper) {
-                PlaneLaunchServo.setPosition(1.0);
-            }
-
-            //roller intake
-            //don't worry about this, worked perfectly
-            if (gamepad1.a) {
-                RollerIntake.setPower(0.5);
-            }
-            if (gamepad1.b) {
-                RollerIntake.setPower(-0.5);
-            }
-            if (gamepad1.x) {
-                RollerIntake.setPower(0);
-            }
-
-            /*cookie monster
-            //we don't have anything for this, looks like we forgot a part for the cookie monster
-            //can't conenct it the the expansion hub; dont have the adpater
-            //easy to program, button controls similar to the roller intake
-            if (gamepad2.a) {
-                SpinTake.setPower(1);
-            }
-            if (gamepad1.b) {
-                SpinTake.setPower(-1);
-            }
-            if (gamepad1.x) {
-                SpinTake.setPower(0);
-            }
-            */
-
-            //we amy want to automate some tasks, I don't know how comfortable the drive team will be
-            //or if the programming will be easy
-            //first lets get some of this to work first.
-            //Ex: SpinTake (ON) -> RollerTake (ON) -> Claw(OPEN) -> We control slide pos (slide go up)
-            //-> Claw auto rotates to the degree we want -> we control open and close of claw
-            //-> We control slide pos (slide go down) -> claw goes to orignal pos (parallel to ground)
-            //-> Claw opens -> when drive presses trasnfers system, claw grabbs the pixel and reapts scoring.
-            //-> Repeat
-
-
-            /*
 
             if (gamepad1.dpad_up) {
-                Slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                Slide.setTargetPosition(SlideCurrentPos += 1000);
-                Slide.setPower(1);
+                SupensionSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                SupensionSlide.setTargetPosition(SlideCurrentPos += 1000);
+                SupensionSlide.setPower(1);
             }
             if (gamepad1.dpad_down) {
-                Slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                Slide.setTargetPosition(SlideCurrentPos -= 1000);
-                Slide.setPower(1);
+                SupensionSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                SupensionSlide.setTargetPosition(SlideCurrentPos -= 1000);
+                SupensionSlide.setPower(1);
             }
-            if (!gamepad1.dpad_up && !gamepad1.dpad_down) {
-                Slide.setPower(0);
+            if (!gamepad1.dpad_up && !gamepad1.dpad_down && gamepad1.right_trigger < 0.6) {
+                SupensionSlide.setPower(0);
             }
-            if (Slide.getCurrentPosition() < 0) {
-                Slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            if (SupensionSlide.getCurrentPosition() < 0) {
+                SupensionSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 SlideCurrentPos = 0;
             }
             if (gamepad1.right_bumper && slideElapsedTime >= 0.25) {
@@ -223,9 +162,9 @@ public class BVTeleOp extends LinearOpMode {
                 slideElapsedTime = 0;
             }
             if (gamepad1.right_trigger >= 0.6) {
-                Slide.setTargetPosition(SlideCurrentPos -= 1000);
-                Slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                Slide.setPower(slidePowerStop);
+                SupensionSlide.setTargetPosition(SlideCurrentPos -= 1000);
+                SupensionSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                SupensionSlide.setPower(slidePowerStop);
             }
             if (slidePowerStop < 0) {
                 slidePowerStop = 0;
@@ -233,6 +172,67 @@ public class BVTeleOp extends LinearOpMode {
             if (slidePowerStop > 1) {
                 slidePowerStop = 1;
             }
+
+            //claw
+            // claw works, the value need to be change though
+            if (gamepad2.left_bumper) {
+                Claw.setPosition(ClosedClaw);
+            }
+            if (gamepad2.right_bumper) {
+                Claw.setPosition(OpenClaw);
+            }
+
+            //rotation for claw
+            //I haven't written anything yet, I want to get some of the other stuff working before we rotate this piece.
+
+            //ClawRotation.scaleRange(0.5, 0.51);
+
+            if (gamepad2.dpad_up) {
+                ClawRotation.setPosition(1);
+            }
+            if (gamepad2.dpad_down) {
+                ClawRotation.setPosition(0.445);
+            }
+
+            //plane launcher
+            //Dosen't work any more, we tried but nothing would happen, maybe it was working, but there weren't
+            //any clear signs of functioning
+            if (gamepad1.left_bumper) {
+                PlaneLaunchServo.setPosition(0.0);
+            }
+            if (gamepad1.right_bumper) {
+                PlaneLaunchServo.setPosition(0.5);
+            }
+
+            //Merge of rollerintake and spintake onto gamepad2 with 4 different patterns:
+            //Rollerintake is the middle, spintake is the front.
+
+            if (gamepad2.x) {
+                SpinTake.setPower(0);
+                RollerIntake.setPower(0);
+            }
+            if (gamepad2.y) {
+                SpinTake.setPower(1);
+                RollerIntake.setPower(0);
+            }
+            if (gamepad2.a) {
+                SpinTake.setPower(0);
+                RollerIntake.setPower(1);
+            }
+            if (gamepad2.b) {
+                SpinTake.setPower(1);
+                RollerIntake.setPower(1);
+            }
+
+
+            //we amy want to automate some tasks, I don't know how comfortable the drive team will be
+            //or if the programming will be easy
+            //first lets get some of this to work first.
+            //Ex: SpinTake (ON) -> RollerTake (ON) -> Claw(OPEN) -> We control slide pos (slide go up)
+            //-> Claw auto rotates to the degree we want -> we control open and close of claw
+            //-> We control slide pos (slide go down) -> claw goes to orignal pos (parallel to ground)
+            //-> Claw opens -> when drive presses trasnfers system, claw grabbs the pixel and reapts scoring.
+            //-> Repeat
 
             //slides
 
@@ -249,6 +249,7 @@ public class BVTeleOp extends LinearOpMode {
 
             YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
 
+            telemetry.addData("Claw Rotation:", ClawRotation.getPosition());
             telemetry.addData("Status", "Run Time: " + runtime.toString());
             telemetry.addData("Current Position:", Slide.getCurrentPosition());
             telemetry.addData("Target Position:", Slide.getTargetPosition());
