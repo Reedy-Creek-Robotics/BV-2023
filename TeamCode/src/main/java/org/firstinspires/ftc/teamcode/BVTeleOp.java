@@ -70,7 +70,9 @@ public class BVTeleOp extends LinearOpMode {
         int SlideStop = 0;
         double clawPosition = ClawRotation.getPosition();
 
-        double OpenClaw = 0.05;
+
+        int slideCurrentPos = 0;
+        double OpenClaw = 0.15;
         double ClosedClaw = 0;
         double RollerPow = 0.1;
         double CurrentPower = 0.8;
@@ -95,6 +97,7 @@ public class BVTeleOp extends LinearOpMode {
         SupensionSlide.setDirection(DcMotor.Direction.REVERSE);
         SupensionSlide.setTargetPosition(0);
         SupensionSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        ClawRotation.setPosition(0);
 
         waitForStart();
 
@@ -106,6 +109,7 @@ public class BVTeleOp extends LinearOpMode {
             double x = gamepad1.left_stick_x * correctionFactor; // Counteract imperfect strafing
             double rx = gamepad1.right_stick_x;
             int SlideCurrentPos = SupensionSlide.getCurrentPosition();
+            double slidePower = Slide.getPower() * 10;
             //double slideY = gamepad2.right_stick_y;
 
             // Denominator is the largest motor power (absolute value) or 1
@@ -133,10 +137,16 @@ public class BVTeleOp extends LinearOpMode {
             //Now works
             Slide.setPower(gamepad2.right_stick_y);
 
+            if (Slide.getCurrentPosition() >= 2001) {
+                ClawRotation.setPosition(1);
+            } if (Slide.getCurrentPosition() <= 2000) {
+                ClawRotation.setPosition(0.445);
+            }
+
             //suspension slide
             //worked, just the hardware side needs work on
 
-            if (gamepad1.dpad_up) {
+            /*if (gamepad1.dpad_up) {
                 SupensionSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 SupensionSlide.setTargetPosition(SlideCurrentPos += 1000);
                 SupensionSlide.setPower(1);
@@ -171,21 +181,19 @@ public class BVTeleOp extends LinearOpMode {
             }
             if (slidePowerStop > 1) {
                 slidePowerStop = 1;
-            }
+            }*/
 
             //claw
             // claw works, the value need to be change though
             if (gamepad2.left_bumper) {
                 Claw.setPosition(ClosedClaw);
             }
-            if (gamepad2.right_bumper) {
+            if (RollerIntake.getPower() == 1) {
                 Claw.setPosition(OpenClaw);
             }
 
             //rotation for claw
-            //I haven't written anything yet, I want to get some of the other stuff working before we rotate this piece.
-
-            //ClawRotation.scaleRange(0.5, 0.51);
+            // ClawRotation.scaleRange(0.5, 0.51);
 
             if (gamepad2.dpad_up) {
                 ClawRotation.setPosition(1);
@@ -206,8 +214,12 @@ public class BVTeleOp extends LinearOpMode {
 
             //Merge of rollerintake and spintake onto gamepad2 with 4 different patterns:
             //Rollerintake is the middle, spintake is the front.
+            if (gamepad2.right_bumper) {
+                SpinTake.setPower(0);
+                RollerIntake.setPower(-1);
+            }
 
-            if (gamepad2.x) {
+            if (gamepad2.b) {
                 SpinTake.setPower(0);
                 RollerIntake.setPower(0);
             }
@@ -219,7 +231,7 @@ public class BVTeleOp extends LinearOpMode {
                 SpinTake.setPower(0);
                 RollerIntake.setPower(1);
             }
-            if (gamepad2.b) {
+            if (gamepad2.x) {
                 SpinTake.setPower(1);
                 RollerIntake.setPower(1);
             }
@@ -251,8 +263,7 @@ public class BVTeleOp extends LinearOpMode {
 
             telemetry.addData("Claw Rotation:", ClawRotation.getPosition());
             telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("Current Position:", Slide.getCurrentPosition());
-            telemetry.addData("Target Position:", Slide.getTargetPosition());
+            telemetry.addData("Current Power:", Slide.getCurrentPosition());
             telemetry.addData("Current Power:", CurrentPower);
             telemetry.addData("Yaw (Z)", "%.2f Deg. (Heading)", orientation.getYaw(AngleUnit.DEGREES));
             telemetry.addData("Pitch (X)", "%.2f Deg.", orientation.getPitch(AngleUnit.DEGREES));
