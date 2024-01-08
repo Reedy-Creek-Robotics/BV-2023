@@ -137,9 +137,10 @@ public class BVTeleOp extends LinearOpMode {
             //Now works
             Slide.setPower(gamepad2.right_stick_y);
 
-            if (Slide.getCurrentPosition() >= 2001) {
+            //Automation of claw rotation, removes manually controlling the rotation for the claw
+            if (Math.abs(Slide.getCurrentPosition()) >= 2001) {
                 ClawRotation.setPosition(1);
-            } if (Slide.getCurrentPosition() <= 2000) {
+            } if (Math.abs(Slide.getCurrentPosition()) <= 2000) {
                 ClawRotation.setPosition(0.445);
             }
 
@@ -188,18 +189,8 @@ public class BVTeleOp extends LinearOpMode {
             if (gamepad2.left_bumper) {
                 Claw.setPosition(ClosedClaw);
             }
-            if (RollerIntake.getPower() == 1) {
+            if (gamepad2.right_bumper) {
                 Claw.setPosition(OpenClaw);
-            }
-
-            //rotation for claw
-            // ClawRotation.scaleRange(0.5, 0.51);
-
-            if (gamepad2.dpad_up) {
-                ClawRotation.setPosition(1);
-            }
-            if (gamepad2.dpad_down) {
-                ClawRotation.setPosition(0.445);
             }
 
             //plane launcher
@@ -214,11 +205,10 @@ public class BVTeleOp extends LinearOpMode {
 
             //Merge of rollerintake and spintake onto gamepad2 with 4 different patterns:
             //Rollerintake is the middle, spintake is the front.
-            if (gamepad2.right_bumper) {
+            if (gamepad2.dpad_down) {
                 SpinTake.setPower(0);
                 RollerIntake.setPower(-1);
             }
-
             if (gamepad2.b) {
                 SpinTake.setPower(0);
                 RollerIntake.setPower(0);
@@ -263,7 +253,7 @@ public class BVTeleOp extends LinearOpMode {
 
             telemetry.addData("Claw Rotation:", ClawRotation.getPosition());
             telemetry.addData("Status", "Run Time: " + runtime.toString());
-            telemetry.addData("Current Power:", Slide.getCurrentPosition());
+            telemetry.addData("Current Position:", Math.abs(Slide.getCurrentPosition()));
             telemetry.addData("Current Power:", CurrentPower);
             telemetry.addData("Yaw (Z)", "%.2f Deg. (Heading)", orientation.getYaw(AngleUnit.DEGREES));
             telemetry.addData("Pitch (X)", "%.2f Deg.", orientation.getPitch(AngleUnit.DEGREES));

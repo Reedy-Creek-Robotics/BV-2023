@@ -2,12 +2,15 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
+import org.opencv.core.MatOfPoint2f;
+import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvCamera;
@@ -19,7 +22,7 @@ import org.openftc.easyopencv.OpenCvWebcam;
 import java.util.ArrayList;
 import java.util.List;
 
-@Autonomous
+@TeleOp
 public class BVColorAutoRed extends LinearOpMode {
 
     //HSV Red
@@ -29,7 +32,9 @@ public class BVColorAutoRed extends LinearOpMode {
     final Scalar LOW_RED2 = new Scalar(0, 100, 100);
     final Scalar HIGH_RED2 = new Scalar(5, 255, 255);
 
-    final Scalar BLUE = new Scalar(0, 255, 0);
+    final Scalar GREEN = new Scalar(0, 255, 0);
+    final Scalar BLUE = new Scalar(0, 0, 255);
+
 
     //--------------------------------------------------------
 
@@ -53,6 +58,8 @@ public class BVColorAutoRed extends LinearOpMode {
     List<MatOfPoint> contoursRed = new ArrayList<>();
 
     Mat merge = new Mat();
+
+    int contourMinimum = 10000;
 
     //--------------------------------------------------------
 
@@ -90,6 +97,18 @@ public class BVColorAutoRed extends LinearOpMode {
 
                 BVColorAutoRed.this.contoursRed = contours;
 
+                for (int i = 0; i < contours.size(); i++) {
+                    //Comment out this if then statement below to draw all contours
+                    //Note that all contours are detected in telemetry regardless
+                    if (Math.abs(Imgproc.contourArea(contoursRed.get(i))) > contourMinimum) {
+
+                        Imgproc.drawContours(input, contoursRed, i, GREEN, 2, 2);
+
+                        Rect rect = Imgproc.boundingRect(contours.get(i));
+                        Imgproc.rectangle(input, rect, BLUE);
+                    }
+                }
+
                 //Returns input to webcam
                 return input;
             }
@@ -124,13 +143,22 @@ public class BVColorAutoRed extends LinearOpMode {
             webcam.setPipeline(redProcessor);
 
             telemetry.addLine("Detecting RED Contours");
-
             telemetry.addData("Webcam pipeline activity", webcam.getPipelineTimeMs());
-
             telemetry.addData("Contours Detected", contoursRed.size());
+            telemetry.addData("Contour Minimum Vision", contourMinimum);
+
+            //Teleop for testing ranges...
+            if (gamepad1.right_stick_y > 0.3) {
+                contourMinimum -= 1;
+            } if (gamepad1.right_stick_y < -0.3) {
+                contourMinimum += 1;
+            }
+
+            //
 
             for (int i = 0; i < contoursRed.size(); i++) {
-                if (Imgproc.contourArea(contoursRed.get(i)) > 1000) {
+                //If then statement to clear out unnecessary contours
+                if (Math.abs(Imgproc.contourArea(contoursRed.get(i))) > contourMinimum) {
                     telemetry.addData("Element Detected! Area of Element:", Imgproc.contourArea(contoursRed.get(i)));
                 } else {
                     telemetry.addData("Red Contour Area", Imgproc.contourArea(contoursRed.get(i)));
