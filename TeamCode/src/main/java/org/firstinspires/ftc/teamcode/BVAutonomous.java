@@ -1,8 +1,12 @@
 package org.firstinspires.ftc.teamcode;
+
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+
+import org.openftc.easyopencv.OpenCvWebcam;
 
 @Autonomous
 public class BVAutonomous extends LinearOpMode {
@@ -70,6 +74,16 @@ public class BVAutonomous extends LinearOpMode {
             telemetry.update();
 
         }
+    }
+
+    public boolean webCamActive() {
+
+        boolean element = false;
+
+        //OpenCvWebcam webcam = this.webcam;
+        //this.webcam = webcam;
+
+        return element;
     }
 
     public void motorAction(double power, double inches, Direction direction, boolean rotate) {

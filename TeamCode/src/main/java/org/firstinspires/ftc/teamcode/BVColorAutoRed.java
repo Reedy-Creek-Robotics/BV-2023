@@ -63,11 +63,15 @@ public class BVColorAutoRed extends LinearOpMode {
 
     //--------------------------------------------------------
 
+    OpenCvWebcam webcam;
+
+    OpenCvPipeline redProcessor;
+
     public void runOpMode() throws InterruptedException {
 
-        OpenCvWebcam webcam;
 
-        OpenCvPipeline redProcessor = new OpenCvPipeline() {
+
+        redProcessor = new OpenCvPipeline() {
 
             @Override
             public Mat processFrame(Mat input) {
@@ -98,14 +102,18 @@ public class BVColorAutoRed extends LinearOpMode {
                 BVColorAutoRed.this.contoursRed = contours;
 
                 for (int i = 0; i < contours.size(); i++) {
-                    //Comment out this if then statement below to draw all contours
+                    //Comment out the if then statement below to draw all contours
                     //Note that all contours are detected in telemetry regardless
                     if (Math.abs(Imgproc.contourArea(contoursRed.get(i))) > contourMinimum) {
 
-                        Imgproc.drawContours(input, contoursRed, i, GREEN, 2, 2);
+                        Imgproc.drawContours(input, contoursRed, i, GREEN, 5, 2);
 
                         Rect rect = Imgproc.boundingRect(contours.get(i));
-                        Imgproc.rectangle(input, rect, BLUE);
+                        Imgproc.rectangle(input, rect, GREEN);
+                    }
+                    //Extra if then statement in order to view contours that are out of range
+                    if (Math.abs(Imgproc.contourArea(contoursRed.get(i))) < contourMinimum) {
+                        Imgproc.drawContours(input, contoursRed, i, BLUE, 5, 2);
                     }
                 }
 
@@ -147,21 +155,19 @@ public class BVColorAutoRed extends LinearOpMode {
             telemetry.addData("Contours Detected", contoursRed.size());
             telemetry.addData("Contour Minimum Vision", contourMinimum);
 
-            //Teleop for testing ranges...
+            //Teleop for testing ranges
             if (gamepad1.right_stick_y > 0.3) {
                 contourMinimum -= 1;
             } if (gamepad1.right_stick_y < -0.3) {
                 contourMinimum += 1;
             }
 
-            //
-
             for (int i = 0; i < contoursRed.size(); i++) {
                 //If then statement to clear out unnecessary contours
                 if (Math.abs(Imgproc.contourArea(contoursRed.get(i))) > contourMinimum) {
                     telemetry.addData("Element Detected! Area of Element:", Imgproc.contourArea(contoursRed.get(i)));
                 } else {
-                    telemetry.addData("Red Contour Area", Imgproc.contourArea(contoursRed.get(i)));
+                    telemetry.addData("Non-Element Contour Area", Imgproc.contourArea(contoursRed.get(i)));
                 }
             }
 

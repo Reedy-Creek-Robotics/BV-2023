@@ -2,12 +2,14 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
+import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvCamera;
@@ -19,10 +21,11 @@ import org.openftc.easyopencv.OpenCvWebcam;
 import java.util.ArrayList;
 import java.util.List;
 
-@Autonomous
+@TeleOp
 public class BVColorAutoBlue extends LinearOpMode {
 
     final Scalar RED = new Scalar(255, 0, 0);
+    final Scalar GREEN = new Scalar(0, 255, 0);
 
     //HSV Blue
     final Scalar LOW_BLUE = new Scalar(100, 100, 100);
@@ -40,12 +43,12 @@ public class BVColorAutoBlue extends LinearOpMode {
     Mat morph = new Mat();
     //Stores the information of a contours' image topology, unused
     Mat hierarchy = new Mat();
-    //Output; stores the output for drawing contours if wanted
-    Mat output = new Mat();
-    //Blue contour area; stores a different contour area value depending on the iteration of the for loop it is on
-    double blueContourArea;
+    //contourMinimum range for the teleop controls
+    int contourMinimum = 10000;
 
     //--------------------------------------------------------
+
+    public void runOpMode() throws InterruptedException {
 
     OpenCvWebcam webcam;
 
@@ -69,8 +72,22 @@ public class BVColorAutoBlue extends LinearOpMode {
 
             Imgproc.findContours(morph, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
 
-            for (int i = 0; i < contoursBlue.size(); i++) {
-                blueContourArea = Imgproc.contourArea(contoursBlue.get(i));
+            BVColorAutoBlue.this.contoursBlue = contours;
+
+            for (int i = 0; i < contours.size(); i++) {
+                //Comment out the if then statement below to draw all contours
+                //Note that all contours are detected in telemetry regardless
+                if (Math.abs(Imgproc.contourArea(contoursBlue.get(i))) > contourMinimum) {
+
+                    Imgproc.drawContours(input, contoursBlue, i, GREEN, 5, 2);
+
+                    Rect rect = Imgproc.boundingRect(contours.get(i));
+                    Imgproc.rectangle(input, rect, GREEN);
+                }
+                //Extra if then statement in order to view contours that are out of range
+                if (Math.abs(Imgproc.contourArea(contoursBlue.get(i))) < contourMinimum) {
+                    Imgproc.drawContours(input, contoursBlue, i, RED, 5, 2);
+                }
             }
 
             //Returns input to webcam
@@ -78,51 +95,55 @@ public class BVColorAutoBlue extends LinearOpMode {
         }
     };
 
+    int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+    webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Camera"), cameraMonitorViewId);
+
+    webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+
         @Override
-        public void runOpMode() throws InterruptedException {
+        public void onOpened() {
+            telemetry.addLine("INTIALIZATION SUCCESSFUL");
+            telemetry.update();
 
-            int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-            webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Camera"), cameraMonitorViewId);
+            webcam.startStreaming(800, 600, OpenCvCameraRotation.UPRIGHT);
+        }
 
-            webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
-                @Override
-                public void onOpened() {
-                    webcam.startStreaming(800, 600, OpenCvCameraRotation.UPRIGHT);
-                    webcam.setPipeline(blueProcessor);
-                }
+        @Override
+        public void onError(int errorCode) {
+            telemetry.addData("ERROR UPON INITIALIZATION:", errorCode);
+            telemetry.update();
+        }
+    });
 
-                @Override
-                public void onError(int errorCode) {
+    waitForStart();
 
-                }
-            });
+    while (opModeIsActive()) {
 
-            while (opModeInInit()) {
-                for (int i = 0; i < contoursBlue.size(); i++) {
-                    Imgproc.drawContours(morph, contoursBlue, i, RED, 2, Imgproc.LINE_8);
-                }
-            }
+        List<MatOfPoint> contoursBlue = BVColorAutoBlue.this.contoursBlue;
 
-            waitForStart();
+        webcam.setPipeline(blueProcessor);
 
-            while (opModeIsActive()) {
+        telemetry.addLine("Detecting BLUE Contours");
+        telemetry.addData("Contours Detected", contoursBlue.size());
+        telemetry.addData("Contour Minimum Vision", contourMinimum);
 
-                telemetry.addLine("Detecting BLUE Contours");
+        if (gamepad1.right_stick_y > 0.3) {
+            contourMinimum -= 1;
+        } if (gamepad1.right_stick_y < -0.3) {
+            contourMinimum += 1;
+        }
 
-                webcam.setPipeline(blueProcessor);
-
-                telemetry.addData("Contours Detected", contoursBlue.size());
-
-                for (int i = 0; i < contoursBlue.size(); i++) {
-                    telemetry.addData("Contour Points: ", contoursBlue);
-
-                    if (blueContourArea > 1000) {
-                        telemetry.addData("Element Detected! Area of Element:", blueContourArea);
-                    }
-                }
-
-                telemetry.update();
-
+        for (int i = 0; i < contoursBlue.size(); i++) {
+            //If then statement to clear out unnecessary contours
+            if (Imgproc.contourArea(contoursBlue.get(i)) > contourMinimum) {
+                telemetry.addData("Element Detected! Area of Element:", Imgproc.contourArea(contoursBlue.get(i)));
+            } else {
+                telemetry.addData("Non-Element Contour Area:", Imgproc.contourArea(contoursBlue.get(i)));
             }
         }
+
+        telemetry.update();
+
+        }
     }
+}

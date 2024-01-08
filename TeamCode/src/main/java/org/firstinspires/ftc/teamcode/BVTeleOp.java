@@ -138,9 +138,9 @@ public class BVTeleOp extends LinearOpMode {
             Slide.setPower(gamepad2.right_stick_y);
 
             //Automation of claw rotation, removes manually controlling the rotation for the claw
-            if (Math.abs(Slide.getCurrentPosition()) >= 2001) {
+            if (Math.abs(Slide.getCurrentPosition()) >= 1001) {
                 ClawRotation.setPosition(1);
-            } if (Math.abs(Slide.getCurrentPosition()) <= 2000) {
+            } else{ //if (Math.abs(Slide.getCurrentPosition()) <= 1000) {
                 ClawRotation.setPosition(0.445);
             }
 
