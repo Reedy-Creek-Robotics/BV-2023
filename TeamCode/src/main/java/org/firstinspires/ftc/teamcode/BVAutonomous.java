@@ -80,8 +80,7 @@ public class BVAutonomous extends LinearOpMode {
 
         boolean element = false;
 
-        //OpenCvWebcam webcam = this.webcam;
-        //this.webcam = webcam;
+        BVColorAutoRed webcam = new BVColorAutoRed();
 
         return element;
     }
