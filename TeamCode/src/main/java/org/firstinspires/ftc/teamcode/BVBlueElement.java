@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -22,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @TeleOp
-public class BVColorAutoBlue extends LinearOpMode {
+public class BVBlueElement extends LinearOpMode {
 
     final Scalar RED = new Scalar(255, 0, 0);
     final Scalar GREEN = new Scalar(0, 255, 0);
@@ -72,7 +71,7 @@ public class BVColorAutoBlue extends LinearOpMode {
 
             Imgproc.findContours(morph, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
 
-            BVColorAutoBlue.this.contoursBlue = contours;
+            BVBlueElement.this.contoursBlue = contours;
 
             for (int i = 0; i < contours.size(); i++) {
                 //Comment out the if then statement below to draw all contours
@@ -119,7 +118,7 @@ public class BVColorAutoBlue extends LinearOpMode {
 
     while (opModeIsActive()) {
 
-        List<MatOfPoint> contoursBlue = BVColorAutoBlue.this.contoursBlue;
+        List<MatOfPoint> contoursBlue = BVBlueElement.this.contoursBlue;
 
         webcam.setPipeline(blueProcessor);
 

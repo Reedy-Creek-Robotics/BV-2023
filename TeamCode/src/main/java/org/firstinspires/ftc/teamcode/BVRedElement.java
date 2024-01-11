@@ -1,6 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -9,7 +8,6 @@ import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
-import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
@@ -23,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @TeleOp
-public class BVColorAutoRed extends LinearOpMode {
+public class BVRedElement extends LinearOpMode {
 
     //HSV Red
     final Scalar LOW_RED1 = new Scalar(248, 100, 100);
@@ -69,8 +67,6 @@ public class BVColorAutoRed extends LinearOpMode {
 
     public void runOpMode() throws InterruptedException {
 
-
-
         redProcessor = new OpenCvPipeline() {
 
             @Override
@@ -99,7 +95,7 @@ public class BVColorAutoRed extends LinearOpMode {
 
                 Imgproc.findContours(merge, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
 
-                BVColorAutoRed.this.contoursRed = contours;
+                BVRedElement.this.contoursRed = contours;
 
                 for (int i = 0; i < contours.size(); i++) {
                     //Comment out the if then statement below to draw all contours
@@ -146,7 +142,7 @@ public class BVColorAutoRed extends LinearOpMode {
 
         while (opModeIsActive()) {
 
-            List<MatOfPoint> contoursRed = BVColorAutoRed.this.contoursRed;
+            List<MatOfPoint> contoursRed = BVRedElement.this.contoursRed;
 
             webcam.setPipeline(redProcessor);
 

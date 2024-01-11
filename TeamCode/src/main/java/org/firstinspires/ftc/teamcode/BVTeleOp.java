@@ -147,7 +147,7 @@ public class BVTeleOp extends LinearOpMode {
             //suspension slide
             //worked, just the hardware side needs work on
 
-            /*if (gamepad1.dpad_up) {
+            if (gamepad1.dpad_up) {
                 SupensionSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 SupensionSlide.setTargetPosition(SlideCurrentPos += 1000);
                 SupensionSlide.setPower(1);
@@ -164,25 +164,6 @@ public class BVTeleOp extends LinearOpMode {
                 SupensionSlide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                 SlideCurrentPos = 0;
             }
-            if (gamepad1.right_bumper && slideElapsedTime >= 0.25) {
-                slidePowerStop += 0.05;
-                slideElapsedTime = 0;
-            }
-            if (gamepad1.left_bumper && slideElapsedTime >= 0.25) {
-                slidePowerStop -= 0.05;
-                slideElapsedTime = 0;
-            }
-            if (gamepad1.right_trigger >= 0.6) {
-                SupensionSlide.setTargetPosition(SlideCurrentPos -= 1000);
-                SupensionSlide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                SupensionSlide.setPower(slidePowerStop);
-            }
-            if (slidePowerStop < 0) {
-                slidePowerStop = 0;
-            }
-            if (slidePowerStop > 1) {
-                slidePowerStop = 1;
-            }*/
 
             //claw
             // claw works, the value need to be change though
