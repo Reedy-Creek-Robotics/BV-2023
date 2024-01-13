@@ -25,7 +25,63 @@ import java.util.List;
 @Autonomous
 public class BVAutonomous extends LinearOpMode {
 
-    List<MatOfPoint> contoursRed;
+    //HSV Red
+    final Scalar LOW_RED1 = new Scalar(248, 100, 100);
+    final Scalar HIGH_RED1 = new Scalar(0, 255, 255);
+
+    final Scalar LOW_RED2 = new Scalar(0, 100, 100);
+    final Scalar HIGH_RED2 = new Scalar(5, 255, 255);
+
+    final Scalar GREEN = new Scalar(0, 255, 0);
+    final Scalar BLUE = new Scalar(0, 0, 255);
+
+
+    //--------------------------------------------------------
+
+    //Red Processor Vars
+    //Two vars of each since we are creating two comparisons then merging them.
+    //Refer to blue processor comments for descriptions of mats.
+
+    Mat hsvMat1 = new Mat();
+    Mat hsvMat2 = new Mat();
+
+    Mat inRangeMat1 = new Mat();
+    Mat inRangeMat2 = new Mat();
+
+    Mat morph1 = new Mat();
+    Mat morph2 = new Mat();
+
+    Mat hierarchy = new Mat();
+
+    Mat kernel = Mat.ones(7, 7, CvType.CV_8UC1);
+
+    List<MatOfPoint> contoursRed = new ArrayList<>();
+
+    Mat merge = new Mat();
+
+    //--------------------------------------------------------
+
+    final Scalar RED = new Scalar(255, 0, 0);
+
+    //HSV Blue
+    final Scalar LOW_BLUE = new Scalar(100, 100, 100);
+    final Scalar HIGH_BLUE = new Scalar(130, 255, 255);
+
+    List<MatOfPoint> contoursBlue = new ArrayList<>();
+
+    //Stores the converted RGB to HSV Mat
+    Mat hsvMat = new Mat();
+    //Stores a 'bitmap' of the values in range of color
+    Mat inRangeMat = new Mat();
+    //Stores the morphed Mat which has most sound removed
+    Mat morph = new Mat();
+    //Stores the information of a contours' image topology, unused
+
+    //--------------------------------------------------------
+
+    OpenCvWebcam webcam;
+
+    OpenCvPipeline redProcessor;
 
     enum Direction {
         FORWARD,
@@ -85,7 +141,8 @@ public class BVAutonomous extends LinearOpMode {
 
             //motorAction(0.6,12.0, Direction.LEFT,false);
 
-            webCamActivate();
+            telemetry.addData("Red Element Detected:", webCamActivateRed());
+            // telemetry.addData("Blue Element Detected:", webCamActivateBlue());
 
 
             //telemetry.addLine("Path Complete");
@@ -93,51 +150,9 @@ public class BVAutonomous extends LinearOpMode {
         }
     }
 
-    public boolean webCamActivate() {
+    public boolean webCamActivateRed() {
 
         boolean element = false;
-
-        //HSV Red
-        final Scalar LOW_RED1 = new Scalar(248, 100, 100);
-        final Scalar HIGH_RED1 = new Scalar(0, 255, 255);
-
-        final Scalar LOW_RED2 = new Scalar(0, 100, 100);
-        final Scalar HIGH_RED2 = new Scalar(5, 255, 255);
-
-        final Scalar GREEN = new Scalar(0, 255, 0);
-        final Scalar BLUE = new Scalar(0, 0, 255);
-
-
-        //--------------------------------------------------------
-
-        //Red Processor Vars
-        //Two vars of each since we are creating two comparisons then merging them.
-        //Refer to blue processor comments for descriptions of mats.
-
-        Mat hsvMat1 = new Mat();
-        Mat hsvMat2 = new Mat();
-
-        Mat inRangeMat1 = new Mat();
-        Mat inRangeMat2 = new Mat();
-
-        Mat morph1 = new Mat();
-        Mat morph2 = new Mat();
-
-        Mat hierarchy = new Mat();
-
-        Mat kernel = Mat.ones(7, 7, CvType.CV_8UC1);
-
-        List<MatOfPoint> contoursRed = new ArrayList<>();
-
-        Mat merge = new Mat();
-
-        int contourMinimum = 10000;
-
-        //--------------------------------------------------------
-
-        OpenCvWebcam webcam;
-
-        OpenCvPipeline redProcessor;
 
         redProcessor = new OpenCvPipeline() {
 
@@ -167,7 +182,7 @@ public class BVAutonomous extends LinearOpMode {
 
                 Imgproc.findContours(merge, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
 
-                contours = BVAutonomous.this.contoursRed;
+                BVAutonomous.this.contoursRed = contours;
 
                 for (int i = 0; i < contours.size(); i++) {
                     //Comment out the if then statement below to draw all contours
@@ -212,27 +227,21 @@ public class BVAutonomous extends LinearOpMode {
 
         waitForStart();
 
-        while (opModeIsActive()) {
+        while (!element) {
+
+            List<MatOfPoint> contoursRed = BVAutonomous.this.contoursRed;
 
             webcam.setPipeline(redProcessor);
 
             telemetry.addLine("Detecting RED Contours");
             telemetry.addData("Webcam pipeline activity", webcam.getPipelineTimeMs());
             telemetry.addData("Contours Detected", contoursRed.size());
-            telemetry.addData("Contour Minimum Vision", contourMinimum);
-
-            //Teleop for testing ranges
-            if (gamepad1.right_stick_y > 0.3) {
-                contourMinimum -= 1;
-            }
-            if (gamepad1.right_stick_y < -0.3) {
-                contourMinimum += 1;
-            }
+            telemetry.addData("Contour Minimum Vision", 10000);
 
             for (int i = 0; i < contoursRed.size(); i++) {
                 //If then statement to clear out unnecessary contours
-                if (Math.abs(Imgproc.contourArea(contoursRed.get(i))) > contourMinimum) {
-                    telemetry.addData("Element Detected! Area of Element:", Imgproc.contourArea(contoursRed.get(i)));
+                if (Math.abs(Imgproc.contourArea(contoursRed.get(i))) > 10000) {
+                    element = true;
                 } else {
                     telemetry.addData("Non-Element Contour Area", Imgproc.contourArea(contoursRed.get(i)));
                 }
@@ -242,7 +251,106 @@ public class BVAutonomous extends LinearOpMode {
 
         }
 
-        return element;
+        return true;
+
+    }
+
+    public boolean webCamActivateBlue() {
+
+        boolean element = false;
+
+        OpenCvWebcam webcam;
+
+        OpenCvPipeline blueProcessor = new OpenCvPipeline() {
+
+            @Override
+            public Mat processFrame(Mat input) {
+
+                //Converts all color from RGB to HSV
+                Imgproc.cvtColor(input, hsvMat, Imgproc.COLOR_RGB2HSV);
+
+                //Creates a bitmap based on if the color is within the two scalar values
+                Core.inRange(hsvMat, LOW_BLUE, HIGH_BLUE, inRangeMat);
+
+                //Removes excess sound to create contours easily
+                Imgproc.morphologyEx(inRangeMat, morph, Imgproc.MORPH_CLOSE, kernel);
+                Imgproc.morphologyEx(morph, morph, Imgproc.MORPH_OPEN, kernel);
+
+                //Creates a list (array) of contours based on the now morphed image
+                List<MatOfPoint> contours = new ArrayList<>();
+
+                Imgproc.findContours(morph, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
+
+                BVAutonomous.this.contoursBlue = contours;
+
+                for (int i = 0; i < contours.size(); i++) {
+                    //Comment out the if then statement below to draw all contours
+                    //Note that all contours are detected in telemetry regardless
+                    if (Math.abs(Imgproc.contourArea(contoursBlue.get(i))) > 10000) {
+
+                        Imgproc.drawContours(input, contoursBlue, i, GREEN, 5, 2);
+
+                        Rect rect = Imgproc.boundingRect(contours.get(i));
+                        Imgproc.rectangle(input, rect, GREEN);
+                    }
+                    //Extra if then statement in order to view contours that are out of range
+                    if (Math.abs(Imgproc.contourArea(contoursBlue.get(i))) < 10000) {
+                        Imgproc.drawContours(input, contoursBlue, i, RED, 5, 2);
+                    }
+                }
+
+                //Returns input to webcam
+                return input;
+            }
+        };
+
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Camera"), cameraMonitorViewId);
+
+        webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+
+            @Override
+            public void onOpened() {
+                telemetry.addLine("INTIALIZATION SUCCESSFUL");
+                telemetry.update();
+
+                webcam.startStreaming(800, 600, OpenCvCameraRotation.UPRIGHT);
+            }
+
+            @Override
+            public void onError(int errorCode) {
+                telemetry.addData("ERROR UPON INITIALIZATION:", errorCode);
+                telemetry.update();
+            }
+        });
+
+        waitForStart();
+
+        while (!element) {
+
+            List<MatOfPoint> contoursBlue = BVAutonomous.this.contoursBlue;
+
+            webcam.setPipeline(blueProcessor);
+
+            telemetry.addLine("Detecting BLUE Contours");
+            telemetry.addData("Contours Detected", contoursBlue.size());
+            telemetry.addData("Contour Minimum Vision", 10000);
+
+            for (int i = 0; i < contoursBlue.size(); i++) {
+                //If then statement to clear out unnecessary contours
+                if (Imgproc.contourArea(contoursBlue.get(i)) > 10000) {
+                    element = true;
+                } else {
+                    telemetry.addData("Non-Element Contour Area:", Imgproc.contourArea(contoursBlue.get(i)));
+                }
+            }
+
+            telemetry.update();
+
+        }
+
+        return true;
+
     }
 
     public void motorAction(double power, double inches, Direction direction, boolean rotate) {

@@ -72,7 +72,7 @@ public class BVTeleOp extends LinearOpMode {
 
 
         int slideCurrentPos = 0;
-        double OpenClaw = 0.15;
+        double OpenClaw = 0.14;
         double ClosedClaw = 0;
         double RollerPow = 0.1;
         double CurrentPower = 0.8;
