@@ -35,7 +35,6 @@ public class BVAutonomous extends LinearOpMode {
     final Scalar GREEN = new Scalar(0, 255, 0);
     final Scalar BLUE = new Scalar(0, 0, 255);
 
-
     //--------------------------------------------------------
 
     //Red Processor Vars

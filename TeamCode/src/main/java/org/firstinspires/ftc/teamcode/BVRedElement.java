@@ -8,6 +8,7 @@ import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
+import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
@@ -23,16 +24,37 @@ import java.util.List;
 @TeleOp
 public class BVRedElement extends LinearOpMode {
 
+
+
     //HSV Red
     final Scalar LOW_RED1 = new Scalar(248, 100, 100);
     final Scalar HIGH_RED1 = new Scalar(0, 255, 255);
 
     final Scalar LOW_RED2 = new Scalar(0, 100, 100);
-    final Scalar HIGH_RED2 = new Scalar(5, 255, 255);
+    final Scalar HIGH_RED2 = new Scalar(12, 255, 255);
 
     final Scalar GREEN = new Scalar(0, 255, 0);
     final Scalar BLUE = new Scalar(0, 0, 255);
+    final Scalar PURPLE = new Scalar(255, 0, 255);
+    final Scalar YELLOW = new Scalar(255, 255, 0);
 
+    //--------------------------------------------------------
+
+    //Vars for camera geometry + resolution
+
+    int camWidth = 800;
+    int camHeight = 600;
+
+    Rect rect1 = new Rect(0, 0, 400, 600);
+    Rect rect2 = new Rect(400, 0, 400, 600);
+
+    enum elementLocation {
+        LEFT,
+        MIDDLE,
+        RIGHT
+    }
+
+    elementLocation spikeLocation = elementLocation.RIGHT;
 
     //--------------------------------------------------------
 
@@ -97,18 +119,26 @@ public class BVRedElement extends LinearOpMode {
 
                 BVRedElement.this.contoursRed = contours;
 
+                //Draws rectangles for visual purposes
+                Imgproc.rectangle(input, rect1, PURPLE, 5);
+                Imgproc.rectangle(input, rect2, YELLOW, 5);
+
                 for (int i = 0; i < contours.size(); i++) {
+
+                    Rect rect = Imgproc.boundingRect(contours.get(i));
+                    Point contourCent = new Point(((rect.width - rect.x) / 2.0) + rect.x, ((rect.height - rect.y) / 2.0) + rect.y);
+
                     //Comment out the if then statement below to draw all contours
                     //Note that all contours are detected in telemetry regardless
                     if (Math.abs(Imgproc.contourArea(contoursRed.get(i))) > contourMinimum) {
 
                         Imgproc.drawContours(input, contoursRed, i, GREEN, 5, 2);
+                        Imgproc.drawMarker(input, contourCent, PURPLE, Imgproc.MARKER_TILTED_CROSS, 5);
 
-                        Rect rect = Imgproc.boundingRect(contours.get(i));
                         Imgproc.rectangle(input, rect, GREEN);
                     }
-                    //Extra if then statement in order to view contours that are out of range
-                    if (Math.abs(Imgproc.contourArea(contoursRed.get(i))) < contourMinimum) {
+                    //Extra else statement in order to view contours that are out of range
+                    else {
                         Imgproc.drawContours(input, contoursRed, i, BLUE, 5, 2);
                     }
                 }
@@ -128,7 +158,7 @@ public class BVRedElement extends LinearOpMode {
                 telemetry.addLine("INITIALIZATION SUCCESSFUL");
                 telemetry.update();
 
-                webcam.startStreaming(800, 600, OpenCvCameraRotation.UPRIGHT);
+                webcam.startStreaming(camWidth, camHeight, OpenCvCameraRotation.UPRIGHT);
             }
 
             @Override
@@ -138,6 +168,10 @@ public class BVRedElement extends LinearOpMode {
             }
         });
 
+        while (opModeInInit()) {
+            telemetry.addLine("KEEP THE ROBOT NEAR THE LEFT SIDE OF THE SQUARE");
+        }
+
         waitForStart();
 
         while (opModeIsActive()) {
@@ -146,6 +180,8 @@ public class BVRedElement extends LinearOpMode {
 
             webcam.setPipeline(redProcessor);
 
+
+            telemetry.addLine("KEEP THE ROBOT NEAR THE LEFT SIDE OF THE SQUARE");
             telemetry.addLine("Detecting RED Contours");
             telemetry.addData("Webcam pipeline activity", webcam.getPipelineTimeMs());
             telemetry.addData("Contours Detected", contoursRed.size());
@@ -154,17 +190,44 @@ public class BVRedElement extends LinearOpMode {
             //Teleop for testing ranges
             if (gamepad1.right_stick_y > 0.3) {
                 contourMinimum -= 1;
-            } if (gamepad1.right_stick_y < -0.3) {
+            }
+            if (gamepad1.right_stick_y < -0.3) {
                 contourMinimum += 1;
             }
 
             for (int i = 0; i < contoursRed.size(); i++) {
+
                 //If then statement to clear out unnecessary contours
                 if (Math.abs(Imgproc.contourArea(contoursRed.get(i))) > contourMinimum) {
-                    telemetry.addData("Element Detected! Area of Element:", Imgproc.contourArea(contoursRed.get(i)));
+
+                    Rect rect = Imgproc.boundingRect(contoursRed.get(i));
+                    Point contourCent = new Point(((rect.br().x - rect.tl().x) / 2.0) + rect.tl().x, ((rect.br().y - rect.tl().y) / 2.0) + rect.tl().y);
+
+                    Point rectTl = new Point(rect.tl().x, rect.tl().y);
+                    Point rectBr = new Point(rect.br().x, rect.br().y);
+
+                    telemetry.addData("Center point", contourCent);
+                    telemetry.addData("Top Left Rect", rectTl);
+                    telemetry.addData("Bottom Right Rect", rectBr);
+
+                    telemetry.addData("Element area", Imgproc.contourArea(contoursRed.get(i)));
+
+                    if (rect1.contains(contourCent)) {
+                        spikeLocation = elementLocation.LEFT;
+                    } else if (rect2.contains(contourCent)) {
+                        spikeLocation = elementLocation.MIDDLE;
+                    }
                 } else {
                     telemetry.addData("Non-Element Contour Area", Imgproc.contourArea(contoursRed.get(i)));
                 }
+            }
+
+            if (spikeLocation == elementLocation.RIGHT) {
+                telemetry.addLine("Element on NO Rectangle / RIGHT spike");
+            } else if (spikeLocation == elementLocation.LEFT) {
+                telemetry.addLine("Element on LEFT Rectangle / LEFT spike");
+            } else if (spikeLocation == elementLocation.MIDDLE) {
+                telemetry.addLine("Element on RIGHT Rectangle / MIDDLE spike");
             }
 
             telemetry.update();
