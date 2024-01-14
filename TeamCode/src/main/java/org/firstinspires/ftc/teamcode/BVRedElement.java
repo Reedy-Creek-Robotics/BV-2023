@@ -33,6 +33,7 @@ public class BVRedElement extends LinearOpMode {
     final Scalar LOW_RED2 = new Scalar(0, 100, 100);
     final Scalar HIGH_RED2 = new Scalar(12, 255, 255);
 
+    //RGB
     final Scalar GREEN = new Scalar(0, 255, 0);
     final Scalar BLUE = new Scalar(0, 0, 255);
     final Scalar PURPLE = new Scalar(255, 0, 255);
@@ -45,8 +46,8 @@ public class BVRedElement extends LinearOpMode {
     int camWidth = 800;
     int camHeight = 600;
 
-    Rect rect1 = new Rect(0, 0, 400, 600);
-    Rect rect2 = new Rect(400, 0, 400, 600);
+    Rect rect1 = new Rect(0, 0, 300, 600);
+    Rect rect2 = new Rect(300, 0, 700, 600);
 
     enum elementLocation {
         LEFT,

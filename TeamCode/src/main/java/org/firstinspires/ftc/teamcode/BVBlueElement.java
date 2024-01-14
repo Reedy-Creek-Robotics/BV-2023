@@ -23,12 +23,17 @@ import java.util.List;
 @TeleOp
 public class BVBlueElement extends LinearOpMode {
 
+    //RGB
     final Scalar RED = new Scalar(255, 0, 0);
     final Scalar GREEN = new Scalar(0, 255, 0);
+    final Scalar PURPLE = new Scalar(255, 0, 255);
+    final Scalar YELLOW = new Scalar(255, 255, 0);
 
     //HSV Blue
     final Scalar LOW_BLUE = new Scalar(100, 100, 100);
     final Scalar HIGH_BLUE = new Scalar(130, 255, 255);
+
+    //--------------------------------------------------------
 
     List<MatOfPoint> contoursBlue = new ArrayList<>();
 
@@ -44,6 +49,24 @@ public class BVBlueElement extends LinearOpMode {
     Mat hierarchy = new Mat();
     //contourMinimum range for the teleop controls
     int contourMinimum = 10000;
+
+    //--------------------------------------------------------
+
+    //Vars for camera geometry + resolution
+
+    int camWidth = 800;
+    int camHeight = 600;
+
+    Rect rect1 = new Rect(0, 0, 300, 600);
+    Rect rect2 = new Rect(300, 0, 700, 600);
+
+    enum elementLocation {
+        LEFT,
+        MIDDLE,
+        RIGHT
+    }
+
+    BVRedElement.elementLocation spikeLocation = BVRedElement.elementLocation.RIGHT;
 
     //--------------------------------------------------------
 
