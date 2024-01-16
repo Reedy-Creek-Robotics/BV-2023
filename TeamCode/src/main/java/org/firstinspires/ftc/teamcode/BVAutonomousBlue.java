@@ -69,7 +69,6 @@ public class BVAutonomousBlue extends LinearOpMode {
 
     int camWidth = 800;
     int camHeight = 600;
-    int blueDetection = webCamActivateBlue();
 
     Rect rect1 = new Rect(0, 0, 300, 600);
     Rect rect2 = new Rect(300, 0, 700, 600);
@@ -79,6 +78,8 @@ public class BVAutonomousBlue extends LinearOpMode {
         MIDDLE,
         RIGHT
     }
+
+    elementLocation spikeLocation = BVAutonomousBlue.elementLocation.RIGHT;
 
     //--------------------------------------------------------
 
@@ -137,11 +138,12 @@ public class BVAutonomousBlue extends LinearOpMode {
         frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-
         if (opModeInInit()) {
             telemetry.addLine("Keep robot on *R*ight side for *R*ed");
             telemetry.addLine("Keep robot on *L*eft side for B*l*ue");
         }
+
+        waitForStart();
 
         if (opModeIsActive()) {
 
@@ -174,6 +176,8 @@ public class BVAutonomousBlue extends LinearOpMode {
                 element == 2, MIDDLE SPIKE
 
               Do NOT use both methods in one class, they both rely on the same enum. */
+
+            int blueDetection = webCamActivateBlue();
 
             //telemetry.addData("Red Element Detected:", webCamActivateRed());
             telemetry.addData("Blue Element Detected:", blueDetection);
@@ -411,14 +415,15 @@ public class BVAutonomousBlue extends LinearOpMode {
 
         waitForStart();
 
-            List<MatOfPoint> contoursBlue = BVAutonomousBlue.this.contoursBlue;
-            BVAutonomousBlue.elementLocation spikeLocation = BVAutonomousBlue.elementLocation.RIGHT;
+
+
+        List<MatOfPoint> contoursBlue = BVAutonomousBlue.this.contoursBlue;
 
             webcam.setPipeline(blueProcessor);
 
             telemetry.addLine("Detecting BLUE Contours");
             telemetry.addData("Contours Detected", contoursBlue.size());
-            telemetry.addData("Contour Minimum Vision", 10000);
+            telemetry.addData("Contour Minimum Vision", contourMinimum);
 
             for (int i = 0; i < contoursBlue.size(); i++) {
 
@@ -446,21 +451,20 @@ public class BVAutonomousBlue extends LinearOpMode {
                     telemetry.addData("Non-Element Contour Area", Imgproc.contourArea(contoursBlue.get(i)));
                 }
             }
-
+            
             int elementLocation = -1;
 
             if (spikeLocation == BVAutonomousBlue.elementLocation.RIGHT) {
                 elementLocation = 0;
             } else if (spikeLocation == BVAutonomousBlue.elementLocation.LEFT) {
-                elementLocation = 1;
+                telemetry.addLine("Element on LEFT Rectangle / LEFT spike");
             } else if (spikeLocation == BVAutonomousBlue.elementLocation.MIDDLE) {
-                elementLocation = 2;
+                telemetry.addLine("Element on RIGHT Rectangle / MIDDLE spike");
             }
 
             telemetry.update();
 
         return elementLocation;
-
     }
 
 
@@ -483,8 +487,7 @@ public class BVAutonomousBlue extends LinearOpMode {
             double COUNTS_PER_MOTOR_REV = 2150.8;    // eg: TETRIX Motor Encoder
             double DRIVE_GEAR_REDUCTION = 1.0;     // No External Gearing.
             double WHEEL_DIAMETER_INCHES = 4.0;     // For figuring circumference
-            double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
-                    (WHEEL_DIAMETER_INCHES * 3.1415);
+            double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
 
             // Determine new target position, and pass to motor controller
             downLeftTarget = (int)(inches * COUNTS_PER_INCH);

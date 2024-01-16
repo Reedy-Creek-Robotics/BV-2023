@@ -183,14 +183,18 @@ public class BVAutonomousRed extends LinearOpMode {
             telemetry.addData("Blue Element Detected:", redDetection);
 
             if (redDetection == 0) {
-                motorAction(0.6, 6, BVAutonomousRed.Direction.RIGHT, false);
+                //motorAction(0.6, 6, BVAutonomousRed.Direction.RIGHT, false);
+                telemetry.addLine("RIGHT");
             } else if (redDetection == 1) {
                 motorAction(0.6, 6, BVAutonomousRed.Direction.FORWARD, false);
+                telemetry.addLine("LEFT");
             } else if (redDetection == 2) {
                 motorAction(0.6, 6, BVAutonomousRed.Direction.LEFT, false);
+                telemetry.addLine("MIDDLE");
             } else {
                 telemetry.addLine("'redDetection' isn't positive or valued");
             }
+
 
             //telemetry.addLine("Path Complete");
             telemetry.update();
@@ -463,7 +467,6 @@ public class BVAutonomousRed extends LinearOpMode {
             telemetry.update();
 
         return elementLocation;
-
     }*/
 
 
