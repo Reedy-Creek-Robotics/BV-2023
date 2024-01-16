@@ -140,7 +140,7 @@ public class BVTeleOp extends LinearOpMode {
             //Automation of claw rotation, removes manually controlling the rotation for the claw
             if (Math.abs(Slide.getCurrentPosition()) >= 1001) {
                 ClawRotation.setPosition(1);
-            } else{ //if (Math.abs(Slide.getCurrentPosition()) <= 1000) {
+            } else {
                 ClawRotation.setPosition(0.445);
             }
 

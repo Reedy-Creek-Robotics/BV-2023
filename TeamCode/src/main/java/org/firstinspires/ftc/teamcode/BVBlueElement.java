@@ -8,6 +8,7 @@ import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
+import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
@@ -66,7 +67,7 @@ public class BVBlueElement extends LinearOpMode {
         RIGHT
     }
 
-    BVRedElement.elementLocation spikeLocation = BVRedElement.elementLocation.RIGHT;
+    BVBlueElement.elementLocation spikeLocation = BVBlueElement.elementLocation.RIGHT;
 
     //--------------------------------------------------------
 
@@ -96,18 +97,26 @@ public class BVBlueElement extends LinearOpMode {
 
             BVBlueElement.this.contoursBlue = contours;
 
+            //Draws rectangles for visual purposes
+            Imgproc.rectangle(input, rect1, PURPLE, 5);
+            Imgproc.rectangle(input, rect2, YELLOW, 5);
+
             for (int i = 0; i < contours.size(); i++) {
+
+                Rect rect = Imgproc.boundingRect(contours.get(i));
+                Point contourCent = new Point(((rect.width - rect.x) / 2.0) + rect.x, ((rect.height - rect.y) / 2.0) + rect.y);
+
                 //Comment out the if then statement below to draw all contours
                 //Note that all contours are detected in telemetry regardless
                 if (Math.abs(Imgproc.contourArea(contoursBlue.get(i))) > contourMinimum) {
 
                     Imgproc.drawContours(input, contoursBlue, i, GREEN, 5, 2);
+                    Imgproc.drawMarker(input, contourCent, PURPLE, Imgproc.MARKER_TILTED_CROSS, 5);
 
-                    Rect rect = Imgproc.boundingRect(contours.get(i));
                     Imgproc.rectangle(input, rect, GREEN);
                 }
-                //Extra if then statement in order to view contours that are out of range
-                if (Math.abs(Imgproc.contourArea(contoursBlue.get(i))) < contourMinimum) {
+                //Extra else statement in order to view contours that are out of range
+                else {
                     Imgproc.drawContours(input, contoursBlue, i, RED, 5, 2);
                 }
             }
@@ -127,7 +136,7 @@ public class BVBlueElement extends LinearOpMode {
             telemetry.addLine("INTIALIZATION SUCCESSFUL");
             telemetry.update();
 
-            webcam.startStreaming(800, 600, OpenCvCameraRotation.UPRIGHT);
+            webcam.startStreaming(camWidth, camHeight, OpenCvCameraRotation.UPRIGHT);
         }
 
         @Override
@@ -137,6 +146,10 @@ public class BVBlueElement extends LinearOpMode {
         }
     });
 
+    while (opModeInInit()) {
+        telemetry.addLine("KEEP THE ROBOT NEAR THE LEFT SIDE OF THE SQUARE");
+    }
+
     waitForStart();
 
     while (opModeIsActive()) {
@@ -145,7 +158,9 @@ public class BVBlueElement extends LinearOpMode {
 
         webcam.setPipeline(blueProcessor);
 
+        telemetry.addLine("KEEP THE ROBOT NEAR THE LEFT SIDE OF THE SQUARE");
         telemetry.addLine("Detecting BLUE Contours");
+        telemetry.addData("Webcam pipeline activity", webcam.getPipelineTimeMs());
         telemetry.addData("Contours Detected", contoursBlue.size());
         telemetry.addData("Contour Minimum Vision", contourMinimum);
 
@@ -156,12 +171,38 @@ public class BVBlueElement extends LinearOpMode {
         }
 
         for (int i = 0; i < contoursBlue.size(); i++) {
+
             //If then statement to clear out unnecessary contours
-            if (Imgproc.contourArea(contoursBlue.get(i)) > contourMinimum) {
-                telemetry.addData("Element Detected! Area of Element:", Imgproc.contourArea(contoursBlue.get(i)));
+            if (Math.abs(Imgproc.contourArea(contoursBlue.get(i))) > contourMinimum) {
+
+                Rect rect = Imgproc.boundingRect(contoursBlue.get(i));
+                Point contourCent = new Point(((rect.br().x - rect.tl().x) / 2.0) + rect.tl().x, ((rect.br().y - rect.tl().y) / 2.0) + rect.tl().y);
+
+                Point rectTl = new Point(rect.tl().x, rect.tl().y);
+                Point rectBr = new Point(rect.br().x, rect.br().y);
+
+                telemetry.addData("Center point", contourCent);
+                telemetry.addData("Top Left Rect", rectTl);
+                telemetry.addData("Bottom Right Rect", rectBr);
+
+                telemetry.addData("Element area", Imgproc.contourArea(contoursBlue.get(i)));
+
+                if (rect1.contains(contourCent)) {
+                    spikeLocation = BVBlueElement.elementLocation.LEFT;
+                } else if (rect2.contains(contourCent)) {
+                    spikeLocation = BVBlueElement.elementLocation.MIDDLE;
+                }
             } else {
-                telemetry.addData("Non-Element Contour Area:", Imgproc.contourArea(contoursBlue.get(i)));
+                telemetry.addData("Non-Element Contour Area", Imgproc.contourArea(contoursBlue.get(i)));
             }
+        }
+
+        if (spikeLocation == BVBlueElement.elementLocation.RIGHT) {
+            telemetry.addLine("Element on NO Rectangle / RIGHT spike");
+        } else if (spikeLocation == BVBlueElement.elementLocation.LEFT) {
+            telemetry.addLine("Element on LEFT Rectangle / LEFT spike");
+        } else if (spikeLocation == BVBlueElement.elementLocation.MIDDLE) {
+            telemetry.addLine("Element on RIGHT Rectangle / MIDDLE spike");
         }
 
         telemetry.update();
