@@ -33,13 +33,6 @@ public class BVAutonomousRed extends LinearOpMode {
     final Scalar LOW_RED2 = new Scalar(0, 100, 100);
     final Scalar HIGH_RED2 = new Scalar(5, 255, 255);
 
-    //RGB HSV
-    final Scalar GREEN = new Scalar(0, 255, 0);
-    final Scalar BLUE = new Scalar(0, 0, 255);
-    final Scalar RED = new Scalar(255, 0, 0);
-    final Scalar PURPLE = new Scalar(255, 0, 255);
-    final Scalar YELLOW = new Scalar(255, 255, 0);
-
     //--------------------------------------------------------
 
     //Red Processor Vars
@@ -95,7 +88,6 @@ public class BVAutonomousRed extends LinearOpMode {
     Mat inRangeMat = new Mat();
     //Stores the morphed Mat which has most sound removed
     Mat morph = new Mat();
-    //Stores the information of a contours' image topology, unused
 
     //--------------------------------------------------------
 
@@ -141,6 +133,7 @@ public class BVAutonomousRed extends LinearOpMode {
         if (opModeInInit()) {
             telemetry.addLine("Keep robot on *R*ight side for *R*ed");
             telemetry.addLine("Keep robot on *L*eft side for B*l*ue");
+            telemetry.update();
         }
 
         waitForStart();
@@ -233,30 +226,6 @@ public class BVAutonomousRed extends LinearOpMode {
 
                 BVAutonomousRed.this.contoursRed = contours;
 
-                //Draws rectangles for visual purposes
-                Imgproc.rectangle(input, rect1, PURPLE, 5);
-                Imgproc.rectangle(input, rect2, YELLOW, 5);
-
-                for (int i = 0; i < contours.size(); i++) {
-
-                    Rect rect = Imgproc.boundingRect(contours.get(i));
-                    Point contourCent = new Point(((rect.width - rect.x) / 2.0) + rect.x, ((rect.height - rect.y) / 2.0) + rect.y);
-
-                    //Comment out the if then statement below to draw all contours
-                    //Note that all contours are detected in telemetry regardless
-                    if (Math.abs(Imgproc.contourArea(contoursBlue.get(i))) > contourMinimum) {
-
-                        Imgproc.drawContours(input, contoursBlue, i, GREEN, 5, 2);
-                        Imgproc.drawMarker(input, contourCent, PURPLE, Imgproc.MARKER_TILTED_CROSS, 5);
-
-                        Imgproc.rectangle(input, rect, GREEN);
-                    }
-                    //Extra else statement in order to view contours that are out of range
-                    else {
-                        Imgproc.drawContours(input, contoursBlue, i, RED, 5, 2);
-                    }
-                }
-
                 //Returns input to webcam
                 return input;
             }
@@ -291,7 +260,7 @@ public class BVAutonomousRed extends LinearOpMode {
             telemetry.addLine("Detecting RED Contours");
             telemetry.addData("Webcam pipeline activity", webcam.getPipelineTimeMs());
             telemetry.addData("Contours Detected", contoursRed.size());
-            telemetry.addData("Contour Minimum Vision", 10000);
+            telemetry.addData("Contour Minimum Vision", contourMinimum);
 
             for (int i = 0; i < contoursRed.size(); i++) {
 
@@ -358,31 +327,7 @@ public class BVAutonomousRed extends LinearOpMode {
 
                 Imgproc.findContours(morph, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
 
-                BVAutonomousRed.this.contoursBlue = contours;
-
-                //Draws rectangles for visual purposes
-                Imgproc.rectangle(input, rect1, PURPLE, 5);
-                Imgproc.rectangle(input, rect2, YELLOW, 5);
-
-                for (int i = 0; i < contours.size(); i++) {
-
-                    Rect rect = Imgproc.boundingRect(contours.get(i));
-                    Point contourCent = new Point(((rect.width - rect.x) / 2.0) + rect.x, ((rect.height - rect.y) / 2.0) + rect.y);
-
-                    //Comment out the if then statement below to draw all contours
-                    //Note that all contours are detected in telemetry regardless
-                    if (Math.abs(Imgproc.contourArea(contoursBlue.get(i))) > contourMinimum) {
-
-                        Imgproc.drawContours(input, contoursBlue, i, GREEN, 5, 2);
-                        Imgproc.drawMarker(input, contourCent, PURPLE, Imgproc.MARKER_TILTED_CROSS, 5);
-
-                        Imgproc.rectangle(input, rect, GREEN);
-                    }
-                    //Extra else statement in order to view contours that are out of range
-                    else {
-                        Imgproc.drawContours(input, contoursBlue, i, RED, 5, 2);
-                    }
-                }
+                BVAutonomousBlue.this.contoursBlue = contours;
 
                 //Returns input to webcam
                 return input;
@@ -396,7 +341,7 @@ public class BVAutonomousRed extends LinearOpMode {
 
             @Override
             public void onOpened() {
-                telemetry.addLine("INTIALIZATION SUCCESSFUL");
+                telemetry.addLine("INITIALIZATION SUCCESSFUL");
                 telemetry.update();
 
                 webcam.startStreaming(camWidth, camHeight, OpenCvCameraRotation.UPRIGHT);
@@ -418,6 +363,7 @@ public class BVAutonomousRed extends LinearOpMode {
             webcam.setPipeline(blueProcessor);
 
             telemetry.addLine("Detecting BLUE Contours");
+            telemetry.addData("Webcam pipeline activity", webcam.getPipelineTimeMs());
             telemetry.addData("Contours Detected", contoursBlue.size());
             telemetry.addData("Contour Minimum Vision", contourMinimum);
 
