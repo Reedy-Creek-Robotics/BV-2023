@@ -27,11 +27,11 @@ import java.util.List;
 public class BVAutonomousBlue extends LinearOpMode {
 
     //HSV Red
-    final Scalar LOW_RED1 = new Scalar(248, 100, 100);
-    final Scalar HIGH_RED1 = new Scalar(0, 255, 255);
+    //final Scalar LOW_RED1 = new Scalar(248, 100, 100);
+    //final Scalar HIGH_RED1 = new Scalar(0, 255, 255);
 
-    final Scalar LOW_RED2 = new Scalar(0, 100, 100);
-    final Scalar HIGH_RED2 = new Scalar(5, 255, 255);
+    //final Scalar LOW_RED2 = new Scalar(0, 100, 100);
+    //final Scalar HIGH_RED2 = new Scalar(5, 255, 255);
 
     //--------------------------------------------------------
 
@@ -39,14 +39,14 @@ public class BVAutonomousBlue extends LinearOpMode {
     //Two vars of each since we are creating two comparisons then merging them.
     //Refer to blue processor comments for descriptions of mats.
 
-    Mat hsvMat1 = new Mat();
-    Mat hsvMat2 = new Mat();
+    //Mat hsvMat1 = new Mat();
+    //Mat hsvMat2 = new Mat();
 
-    Mat inRangeMat1 = new Mat();
-    Mat inRangeMat2 = new Mat();
+    //Mat inRangeMat1 = new Mat();
+    //Mat inRangeMat2 = new Mat();
 
-    Mat morph1 = new Mat();
-    Mat morph2 = new Mat();
+    //Mat morph1 = new Mat();
+    //Mat morph2 = new Mat();
 
     Mat hierarchy = new Mat();
 
@@ -54,7 +54,7 @@ public class BVAutonomousBlue extends LinearOpMode {
 
     List<MatOfPoint> contoursRed = new ArrayList<>();
 
-    Mat merge = new Mat();
+    //Mat merge = new Mat();
 
     //--------------------------------------------------------
 
@@ -72,13 +72,21 @@ public class BVAutonomousBlue extends LinearOpMode {
         RIGHT
     }
 
-    elementLocation spikeLocation = BVAutonomousBlue.elementLocation.RIGHT;
+    elementLocation spikeLocation;
+
+    int tickMaximum = 1000;
 
     //--------------------------------------------------------
 
     //HSV Blue
     final Scalar LOW_BLUE = new Scalar(100, 100, 100);
     final Scalar HIGH_BLUE = new Scalar(130, 255, 255);
+
+    //RGB Scalar
+    final Scalar GREEN = new Scalar(0, 255, 0);
+    final Scalar PURPLE = new Scalar(255, 0, 255);
+    final Scalar YELLOW = new Scalar(255, 255, 0);
+    final Scalar RED = new Scalar(255, 0, 0);
 
     List<MatOfPoint> contoursBlue = new ArrayList<>();
 
@@ -136,9 +144,27 @@ public class BVAutonomousBlue extends LinearOpMode {
             telemetry.update();
         }
 
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Camera"), cameraMonitorViewId);
+
+        webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+
+            @Override
+            public void onOpened() {
+                webcam.startStreaming(camWidth, camHeight, OpenCvCameraRotation.UPRIGHT);
+                webcam.setPipeline(blueProcessor);
+            }
+
+            @Override
+            public void onError(int errorCode) {
+                telemetry.addData("ERROR UPON INITIALIZATION:", errorCode);
+                telemetry.update();
+            }
+        });
+
         waitForStart();
 
-        if (opModeIsActive()) {
+        while (opModeIsActive()) {
 
             /* Motor action below
              4 Params in order: Power (double), Inches (double), Direction.[direction] (Enum), rotate (boolean)
@@ -159,34 +185,25 @@ public class BVAutonomousBlue extends LinearOpMode {
 
             //motorAction(0.6,12.0, Direction.LEFT,false);
 
-            /* Element (blueDetection) int is returned upon method call webCamActivateRed() or webCamActivateBlue(),
-
-              When:
-
-                element == -1, ERROR / NULL
-                element == 0, RIGHT SPIKE
-                element == 1, LEFT SPIKE
-                element == 2, MIDDLE SPIKE
+            /* Enum (officialSpikeLocation) is returned upon method call webCamActivateRed() or webCamActivateBlue(),
 
               Do NOT use both methods in one class, they both rely on the same enum. */
 
-            int blueDetection = webCamActivateBlue();
+            elementLocation officialSpikeLocation = webCamActivateBlue();
 
-            //telemetry.addData("Red Element Detected:", webCamActivateRed());
-            telemetry.addData("Blue Element Detected:", blueDetection);
+            telemetry.addLine("Detecting BLUE Contours");
+            telemetry.addData("Blue Element Detected", officialSpikeLocation);
+            telemetry.addData("Webcam pipeline activity", webcam.getPipelineTimeMs());
+            telemetry.addData("Contours Detected", contoursBlue.size());
+            telemetry.addData("Contour Minimum Vision", contourMinimum);
 
-            if (blueDetection == 0) {
-                //motorAction(0.6, 6, Direction.RIGHT, false);
-                telemetry.addLine("RIGHT");
-            } else if (blueDetection == 1) {
-                //motorAction(0.6, 6, Direction.FORWARD, false);
-                telemetry.addLine("LEFT");
-            } else if (blueDetection == 2) {
-                //motorAction(0.6, 6, Direction.LEFT, false);
-                telemetry.addLine("MIDDLE");
-            } else {
-                telemetry.addLine("'blueDetection' isn't positive or valued");
-            }
+            /*if (officialSpikeLocation == elementLocation.RIGHT) {
+                motorAction(0.6, 6, Direction.RIGHT, false);
+            } if (officialSpikeLocation == elementLocation.LEFT) {
+                motorAction(0.6, 6, Direction.FORWARD, false);
+            } if (officialSpikeLocation == elementLocation.MIDDLE) {
+                motorAction(0.6, 6, Direction.LEFT, false);
+            }*/
 
 
             //telemetry.addLine("Path Complete");
@@ -305,7 +322,7 @@ public class BVAutonomousBlue extends LinearOpMode {
 
         }*/
 
-    public int webCamActivateBlue() {
+    public elementLocation webCamActivateBlue() {
 
         blueProcessor = new OpenCvPipeline() {
 
@@ -329,84 +346,72 @@ public class BVAutonomousBlue extends LinearOpMode {
 
                 BVAutonomousBlue.this.contoursBlue = contours;
 
+                //Draws rectangles for visual purposes
+                Imgproc.rectangle(input, rect1, PURPLE, 5);
+                Imgproc.rectangle(input, rect2, YELLOW, 5);
+
+                for (int i = 0; i < contours.size(); i++) {
+
+                    Rect rect = Imgproc.boundingRect(contours.get(i));
+                    Point contourCent = new Point(((rect.br().x - rect.tl().x) / 2.0) + rect.tl().x, ((rect.br().y - rect.tl().y) / 2.0) + rect.tl().y);
+
+                    //Comment out the if then statement below to draw all contours
+                    //Note that all contours are detected in telemetry regardless
+                    if (Math.abs(Imgproc.contourArea(contoursBlue.get(i))) > contourMinimum) {
+
+                        Imgproc.drawContours(input, contoursBlue, i, GREEN, 5, 2);
+                        Imgproc.drawMarker(input, contourCent, PURPLE, Imgproc.MARKER_TILTED_CROSS, 5);
+
+                        Imgproc.rectangle(input, rect, GREEN);
+                    }
+                    //Extra else statement in order to view contours that are out of range
+                    else {
+                        Imgproc.drawContours(input, contoursBlue, i, RED, 5, 2);
+                    }
+                }
+
                 //Returns input to webcam
                 return input;
             }
         };
 
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Camera"), cameraMonitorViewId);
-
-        webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
-
-            @Override
-            public void onOpened() {
-                telemetry.addLine("INITIALIZATION SUCCESSFUL");
-                telemetry.update();
-
-                webcam.startStreaming(camWidth, camHeight, OpenCvCameraRotation.UPRIGHT);
-            }
-
-            @Override
-            public void onError(int errorCode) {
-                telemetry.addData("ERROR UPON INITIALIZATION:", errorCode);
-                telemetry.update();
-            }
-        });
-
         waitForStart();
-
-
-
-        List<MatOfPoint> contoursBlue = BVAutonomousBlue.this.contoursBlue;
 
             webcam.setPipeline(blueProcessor);
 
-            telemetry.addLine("Detecting BLUE Contours");
-            telemetry.addData("Webcam pipeline activity", webcam.getPipelineTimeMs());
-            telemetry.addData("Contours Detected", contoursBlue.size());
-            telemetry.addData("Contour Minimum Vision", contourMinimum);
+                for (int i = 0; i < contoursBlue.size(); i++) {
 
-            for (int i = 0; i < contoursBlue.size(); i++) {
+                    //If then statement to clear out unnecessary contours
+                    //if (Math.abs(Imgproc.contourArea(contoursBlue.get(i))) > contourMinimum) {
 
-                //If then statement to clear out unnecessary contours
-                if (Math.abs(Imgproc.contourArea(contoursBlue.get(i))) > contourMinimum) {
+                        Rect rect = Imgproc.boundingRect(contoursBlue.get(i));
+                        Point contourCent = new Point(((rect.br().x + rect.tl().x) / 2.0) + rect.tl().x, ((rect.br().y + rect.tl().y) / 2.0) + rect.tl().y);
 
-                    Rect rect = Imgproc.boundingRect(contoursBlue.get(i));
-                    Point contourCent = new Point(((rect.br().x - rect.tl().x) / 2.0) + rect.tl().x, ((rect.br().y - rect.tl().y) / 2.0) + rect.tl().y);
+                        Point rectTl = new Point(rect.tl().x, rect.tl().y);
+                        Point rectBr = new Point(rect.br().x, rect.br().y);
 
-                    Point rectTl = new Point(rect.tl().x, rect.tl().y);
-                    Point rectBr = new Point(rect.br().x, rect.br().y);
+                        telemetry.addData("Center point", contourCent);
+                        telemetry.addData("Top Left Rect", rectTl);
+                        telemetry.addData("Bottom Right Rect", rectBr);
 
-                    telemetry.addData("Center point", contourCent);
-                    telemetry.addData("Top Left Rect", rectTl);
-                    telemetry.addData("Bottom Right Rect", rectBr);
+                        telemetry.addData("Element area", Imgproc.contourArea(contoursBlue.get(i)));
 
-                    telemetry.addData("Element area", Imgproc.contourArea(contoursBlue.get(i)));
+                        if (rect1.contains(contourCent)) {
+                            spikeLocation = BVAutonomousBlue.elementLocation.LEFT;
+                        } if (rect2.contains(contourCent)) {
+                            spikeLocation = BVAutonomousBlue.elementLocation.MIDDLE;
+                        }
+                    //} else {
+                        telemetry.addData("Non-Element Contour Area", Imgproc.contourArea(contoursBlue.get(i)));
+                    //}
 
-                    if (rect1.contains(contourCent)) {
-                        spikeLocation = BVAutonomousBlue.elementLocation.LEFT;
-                    } else if (rect2.contains(contourCent)) {
-                        spikeLocation = BVAutonomousBlue.elementLocation.MIDDLE;
-                    }
-                } else {
-                    telemetry.addData("Non-Element Contour Area", Imgproc.contourArea(contoursBlue.get(i)));
+                    telemetry.addData("Contour area", contoursBlue.get(i));
+
+                    telemetry.update();
+
                 }
-            }
-            
-            int elementLocation = -1;
 
-            if (spikeLocation == BVAutonomousBlue.elementLocation.RIGHT) {
-                elementLocation = 0;
-            } else if (spikeLocation == BVAutonomousBlue.elementLocation.LEFT) {
-                elementLocation = 1;
-            } else if (spikeLocation == BVAutonomousBlue.elementLocation.MIDDLE) {
-                elementLocation = 2;
-            }
-
-            telemetry.update();
-
-        return elementLocation;
+        return spikeLocation;
     }
 
 

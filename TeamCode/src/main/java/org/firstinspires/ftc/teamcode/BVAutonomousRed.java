@@ -31,7 +31,7 @@ public class BVAutonomousRed extends LinearOpMode {
     final Scalar HIGH_RED1 = new Scalar(0, 255, 255);
 
     final Scalar LOW_RED2 = new Scalar(0, 100, 100);
-    final Scalar HIGH_RED2 = new Scalar(5, 255, 255);
+    final Scalar HIGH_RED2 = new Scalar(12, 255, 255);
 
     //--------------------------------------------------------
 
@@ -280,9 +280,9 @@ public class BVAutonomousRed extends LinearOpMode {
                     telemetry.addData("Element area", Imgproc.contourArea(contoursRed.get(i)));
 
                     if (rect1.contains(contourCent)) {
-                        spikeLocation = BVAutonomousRed.elementLocation.LEFT;
+                        spikeLocation = elementLocation.LEFT;
                     } else if (rect2.contains(contourCent)) {
-                        spikeLocation = BVAutonomousRed.elementLocation.MIDDLE;
+                        spikeLocation = elementLocation.MIDDLE;
                     }
                 } else {
                     telemetry.addData("Non-Element Contour Area", Imgproc.contourArea(contoursRed.get(i)));
