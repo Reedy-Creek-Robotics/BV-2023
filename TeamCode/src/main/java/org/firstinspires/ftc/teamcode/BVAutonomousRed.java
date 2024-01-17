@@ -166,7 +166,7 @@ public class BVAutonomousRed extends LinearOpMode {
 
             //motorAction(0.6,12.0, Direction.LEFT,false);
 
-            /* Element int is returned upon method call webCamActivateRed() or webCamActivateBlue(),
+            /* Element (redDetection) int is returned upon method call webCamActivateRed() or webCamActivateBlue(),
 
               When:
 
@@ -175,7 +175,7 @@ public class BVAutonomousRed extends LinearOpMode {
                 element == 1, LEFT SPIKE
                 element == 2, MIDDLE SPIKE
 
-              Do NOT use both methods in one class, they both rely on the same enum.*/
+              Do NOT use both methods in one class, they both rely on the same enum. */
 
             int redDetection = webCamActivateRed();
 
@@ -186,10 +186,10 @@ public class BVAutonomousRed extends LinearOpMode {
                 //motorAction(0.6, 6, BVAutonomousRed.Direction.RIGHT, false);
                 telemetry.addLine("RIGHT");
             } else if (redDetection == 1) {
-                motorAction(0.6, 6, BVAutonomousRed.Direction.FORWARD, false);
+                //motorAction(0.6, 6, BVAutonomousRed.Direction.FORWARD, false);
                 telemetry.addLine("LEFT");
             } else if (redDetection == 2) {
-                motorAction(0.6, 6, BVAutonomousRed.Direction.LEFT, false);
+                //motorAction(0.6, 6, BVAutonomousRed.Direction.LEFT, false);
                 telemetry.addLine("MIDDLE");
             } else {
                 telemetry.addLine("'redDetection' isn't positive or valued");
@@ -202,8 +202,6 @@ public class BVAutonomousRed extends LinearOpMode {
     }
 
     public int webCamActivateRed() {
-
-        boolean element = false;
 
         redProcessor = new OpenCvPipeline() {
 
@@ -286,8 +284,6 @@ public class BVAutonomousRed extends LinearOpMode {
 
         waitForStart();
 
-        int elementLocation = 0;
-
             List<MatOfPoint> contoursRed = BVAutonomousRed.this.contoursRed;
 
             webcam.setPipeline(redProcessor);
@@ -324,7 +320,7 @@ public class BVAutonomousRed extends LinearOpMode {
                 }
             }
 
-            elementLocation = -1;
+            int elementLocation = -1;
 
             if (spikeLocation == BVAutonomousRed.elementLocation.RIGHT) {
                 elementLocation = 0;
@@ -342,9 +338,7 @@ public class BVAutonomousRed extends LinearOpMode {
 
     /*public int webCamActivateBlue() {
 
-        OpenCvWebcam webcam;
-
-        OpenCvPipeline blueProcessor = new OpenCvPipeline() {
+        blueProcessor = new OpenCvPipeline() {
 
             @Override
             public Mat processFrame(Mat input) {
@@ -425,7 +419,7 @@ public class BVAutonomousRed extends LinearOpMode {
 
             telemetry.addLine("Detecting BLUE Contours");
             telemetry.addData("Contours Detected", contoursBlue.size());
-            telemetry.addData("Contour Minimum Vision", 10000);
+            telemetry.addData("Contour Minimum Vision", contourMinimum);
 
             for (int i = 0; i < contoursBlue.size(); i++) {
 
@@ -489,8 +483,7 @@ public class BVAutonomousRed extends LinearOpMode {
             double COUNTS_PER_MOTOR_REV = 2150.8;    // eg: TETRIX Motor Encoder
             double DRIVE_GEAR_REDUCTION = 1.0;     // No External Gearing.
             double WHEEL_DIAMETER_INCHES = 4.0;     // For figuring circumference
-            double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
-                    (WHEEL_DIAMETER_INCHES * 3.1415);
+            double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
 
             // Determine new target position, and pass to motor controller
             downLeftTarget = (int)(inches * COUNTS_PER_INCH);

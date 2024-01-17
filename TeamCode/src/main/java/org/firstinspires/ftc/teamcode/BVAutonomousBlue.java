@@ -166,7 +166,7 @@ public class BVAutonomousBlue extends LinearOpMode {
 
             //motorAction(0.6,12.0, Direction.LEFT,false);
 
-            /* Element / blueDetection int is returned upon method call webCamActivateRed() or webCamActivateBlue(),
+            /* Element (blueDetection) int is returned upon method call webCamActivateRed() or webCamActivateBlue(),
 
               When:
 
@@ -202,8 +202,6 @@ public class BVAutonomousBlue extends LinearOpMode {
     }
 
     /*public int webCamActivateRed() {
-
-        boolean element = false;
 
         redProcessor = new OpenCvPipeline() {
 
@@ -274,7 +272,7 @@ public class BVAutonomousBlue extends LinearOpMode {
                 telemetry.addLine("INITIALIZATION SUCCESSFUL");
                 telemetry.update();
 
-                webcam.startStreaming(800, 600, OpenCvCameraRotation.UPRIGHT);
+                webcam.startStreaming(camWidth, camHeight, OpenCvCameraRotation.UPRIGHT);
             }
 
             @Override
@@ -285,8 +283,6 @@ public class BVAutonomousBlue extends LinearOpMode {
         });
 
         waitForStart();
-
-        int elementLocation = 0;
 
             List<MatOfPoint> contoursRed = BVAutonomousBlue.this.contoursRed;
 
@@ -324,7 +320,7 @@ public class BVAutonomousBlue extends LinearOpMode {
                 }
             }
 
-            elementLocation = -1;
+            int elementLocation = -1;
 
             if (spikeLocation == BVAutonomousBlue.elementLocation.RIGHT) {
                 elementLocation = 0;
@@ -457,9 +453,9 @@ public class BVAutonomousBlue extends LinearOpMode {
             if (spikeLocation == BVAutonomousBlue.elementLocation.RIGHT) {
                 elementLocation = 0;
             } else if (spikeLocation == BVAutonomousBlue.elementLocation.LEFT) {
-                telemetry.addLine("Element on LEFT Rectangle / LEFT spike");
+                elementLocation = 1;
             } else if (spikeLocation == BVAutonomousBlue.elementLocation.MIDDLE) {
-                telemetry.addLine("Element on RIGHT Rectangle / MIDDLE spike");
+                elementLocation = 2;
             }
 
             telemetry.update();
