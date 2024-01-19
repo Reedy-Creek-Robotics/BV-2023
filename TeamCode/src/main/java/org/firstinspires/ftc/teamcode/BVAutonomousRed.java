@@ -65,6 +65,8 @@ public class BVAutonomousRed extends LinearOpMode {
     int camWidth = 800;
     int camHeight = 600;
 
+    elementLocation officialSpikeLocation = null;
+
     Rect rect1 = new Rect(0, 0, 300, 600);
     Rect rect2 = new Rect(300, 0, 700, 600);
 
@@ -190,8 +192,6 @@ public class BVAutonomousRed extends LinearOpMode {
 
               Do NOT use both methods in one class, they both rely on the same enum. */
 
-            elementLocation officialSpikeLocation = null;
-
             if (spikeLocation == elementLocation.UNDECLARED) {
                 officialSpikeLocation = webCamActivateRed();
             }
@@ -199,7 +199,7 @@ public class BVAutonomousRed extends LinearOpMode {
             telemetry.addLine("Detecting BLUE Contours");
             telemetry.addData("Blue Element Detected", officialSpikeLocation);
             telemetry.addData("Webcam pipeline activity", webcam.getPipelineTimeMs());
-            telemetry.addData("Contours Detected", contoursBlue.size());
+            telemetry.addData("Contours Detected", contoursRed.size());
             telemetry.addData("Contour Minimum Vision", contourMinimum);
 
             if (officialSpikeLocation == elementLocation.RIGHT) {
@@ -283,26 +283,6 @@ public class BVAutonomousRed extends LinearOpMode {
             }
         };
 
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Camera"), cameraMonitorViewId);
-
-        webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
-
-            @Override
-            public void onOpened() {
-                telemetry.addLine("INITIALIZATION SUCCESSFUL");
-                telemetry.update();
-
-                webcam.startStreaming(camWidth, camHeight, OpenCvCameraRotation.UPRIGHT);
-            }
-
-            @Override
-            public void onError(int errorCode) {
-                telemetry.addData("ERROR UPON INITIALIZATION:", errorCode);
-                telemetry.update();
-            }
-        });
-
         waitForStart();
 
         List<MatOfPoint> contoursRed = BVAutonomousRed.this.contoursRed;
@@ -332,11 +312,11 @@ public class BVAutonomousRed extends LinearOpMode {
                 telemetry.addData("Element area", Imgproc.contourArea(contoursRed.get(i)));
 
                 if (rect1.contains(contourCent)) {
-                    spikeLocation = BVAutonomousRed.elementLocation.LEFT;
+                    spikeLocation = elementLocation.LEFT;
                     return spikeLocation;
                 }
                 if (rect2.contains(contourCent)) {
-                    spikeLocation = BVAutonomousRed.elementLocation.MIDDLE;
+                    spikeLocation = elementLocation.MIDDLE;
                     return spikeLocation;
                 }
             } else {
@@ -344,7 +324,7 @@ public class BVAutonomousRed extends LinearOpMode {
             }
 
             //Count trigger to put a time lock before method can declare contour as RIGHT
-            if (i < contoursBlue.size()) {
+            if (i < contoursRed.size()) {
                 count += 1;
                 telemetry.addData("Count", count);
                 telemetry.update();
@@ -357,110 +337,9 @@ public class BVAutonomousRed extends LinearOpMode {
         }
 
         telemetry.update();
+
         return spikeLocation;
     }
-
-    /*public elementLocation webCamActivateBlue() {
-
-        blueProcessor = new OpenCvPipeline() {
-
-            @Override
-            public Mat processFrame(Mat input) {
-
-                //Converts all color from RGB to HSV
-                Imgproc.cvtColor(input, hsvMat, Imgproc.COLOR_RGB2HSV);
-
-                //Creates a bitmap based on if the color is within the two scalar values
-                Core.inRange(hsvMat, LOW_BLUE, HIGH_BLUE, inRangeMat);
-
-                //Removes excess sound to create contours easily
-                Imgproc.morphologyEx(inRangeMat, morph, Imgproc.MORPH_CLOSE, kernel);
-                Imgproc.morphologyEx(morph, morph, Imgproc.MORPH_OPEN, kernel);
-
-                //Creates a list (array) of contours based on the now morphed image
-                List<MatOfPoint> contours = new ArrayList<>();
-
-                Imgproc.findContours(morph, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
-
-                BVAutonomousBlue.this.contoursBlue = contours;
-
-                //Draws rectangles for visual purposes
-                Imgproc.rectangle(input, rect1, PURPLE, 5);
-                Imgproc.rectangle(input, rect2, YELLOW, 5);
-
-                for (int i = 0; i < contours.size(); i++) {
-
-                    Rect rect = Imgproc.boundingRect(contours.get(i));
-                    Point contourCent = new Point(((rect.br().x - rect.tl().x) / 2.0) + rect.tl().x, ((rect.br().y - rect.tl().y) / 2.0) + rect.tl().y);
-
-                    //Comment out the if then statement below to draw all contours
-                    //Note that all contours are detected in telemetry regardless
-                    if (Math.abs(Imgproc.contourArea(contoursBlue.get(i))) > contourMinimum) {
-
-                        Imgproc.drawContours(input, contoursBlue, i, GREEN, 5, 2);
-                        Imgproc.drawMarker(input, contourCent, PURPLE, Imgproc.MARKER_TILTED_CROSS, 5);
-
-                        Imgproc.rectangle(input, rect, GREEN);
-                    }
-                    //Extra else statement in order to view contours that are out of range
-                    else {
-                        Imgproc.drawContours(input, contoursBlue, i, RED, 5, 2);
-                    }
-                }
-
-                //Returns input to webcam
-                return input;
-            }
-        };
-
-        waitForStart();
-
-        webcam.setPipeline(blueProcessor);
-
-        for (int i = 0; i < contoursBlue.size(); i++) {
-
-            //If then statement to clear out unnecessary contours
-            if (Math.abs(Imgproc.contourArea(contoursBlue.get(i))) > contourMinimum) {
-
-                Rect rect = Imgproc.boundingRect(contoursBlue.get(i));
-                Point contourCent = new Point((((rect.br().x - rect.tl().x) / 2.0) + rect.tl().x), (((rect.br().y - rect.tl().y) / 2.0) + rect.tl().y));
-
-                /*Point rectTl = new Point(rect.tl().x, rect.tl().y);
-                Point rectBr = new Point(rect.br().x, rect.br().y);
-
-                telemetry.addData("Center point", contourCent);
-                telemetry.addData("Top Left Rect", rectTl);
-                telemetry.addData("Bottom Right Rect", rectBr);
-
-                if (rect1.contains(contourCent)) {
-                    spikeLocation = BVAutonomousBlue.elementLocation.LEFT;
-                    return spikeLocation;
-                }
-                if (rect2.contains(contourCent)) {
-                    spikeLocation = BVAutonomousBlue.elementLocation.MIDDLE;
-                    return spikeLocation;
-                }
-            } else {
-                telemetry.addData("Non-Element Contour Area", Imgproc.contourArea(contoursBlue.get(i)));
-            }
-
-            //Count trigger to put a time lock before method can declare contour as RIGHT
-            if (i < contoursBlue.size()) {
-                count += 1;
-                telemetry.addData("Count", count);
-                telemetry.update();
-            }
-
-            if (count >= 2500 && spikeLocation != elementLocation.LEFT && spikeLocation != elementLocation.MIDDLE) {
-                spikeLocation = elementLocation.RIGHT;
-                return spikeLocation;
-            }
-        }
-
-        return spikeLocation;
-
-    }*/
-
 
     public void motorAction(double power, double inches, Direction direction, boolean rotate) {
 
@@ -564,7 +443,7 @@ public class BVAutonomousRed extends LinearOpMode {
             // However, if you require that ALL motors have finished their moves before the robot continues
             // onto the next step, use (isBusy() || isBusy()) in the loop test.
             while (opModeIsActive() &&
-                    (backLeft.isBusy() || backRight.isBusy() || frontLeft.isBusy() || frontRight.isBusy())) {
+                    (backLeft.getCurrentPosition() != backLeft.getTargetPosition() || backRight.getCurrentPosition() != backRight.getTargetPosition() || frontLeft.getCurrentPosition() != frontLeft.getTargetPosition() || frontRight.getCurrentPosition() != frontRight.getTargetPosition())) {
                 // Display it for the driver.
                 telemetry.addData("Running to", " %7d :%7d", downLeftTarget, downRightTarget, upLeftTarget, upRightTarget);
                 telemetry.addData("Currently at", " at %7d :%7d", backLeft.getCurrentPosition(), backRight.getCurrentPosition(), frontLeft.getCurrentPosition(), frontRight.getCurrentPosition());
