@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Autonomous
-public class BVAutonomousRed extends LinearOpMode {
+public class BVAutonomousRedLeft extends LinearOpMode {
 
     //HSV Red
     final Scalar LOW_RED1 = new Scalar(248, 100, 100);
@@ -192,7 +192,7 @@ public class BVAutonomousRed extends LinearOpMode {
 
               Do NOT use both methods in one class, they both rely on the same enum. */
 
-            if (spikeLocation == elementLocation.UNDECLARED) {
+            /*if (spikeLocation == elementLocation.UNDECLARED) {
                 officialSpikeLocation = webCamActivateRed();
             }
 
@@ -200,7 +200,7 @@ public class BVAutonomousRed extends LinearOpMode {
             telemetry.addData("Blue Element Detected", officialSpikeLocation);
             telemetry.addData("Webcam pipeline activity", webcam.getPipelineTimeMs());
             telemetry.addData("Contours Detected", contoursRed.size());
-            telemetry.addData("Contour Minimum Vision", contourMinimum);*/
+            telemetry.addData("Contour Minimum Vision", contourMinimum);
 
             if (officialSpikeLocation == elementLocation.RIGHT) {
 
@@ -216,7 +216,10 @@ public class BVAutonomousRed extends LinearOpMode {
 
                 motorAction(0.6, 6, Direction.FORWARD, false);
 
-            }
+            }*/
+
+            motorAction(1, 24, Direction.RIGHT, false);
+
         }
     }
 
@@ -250,7 +253,7 @@ public class BVAutonomousRed extends LinearOpMode {
 
                 Imgproc.findContours(merge, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
 
-                BVAutonomousRed.this.contoursRed = contours;
+                BVAutonomousRedLeft.this.contoursRed = contours;
 
                 //Draws rectangles for visual purposes
                 Imgproc.rectangle(input, rect1, PURPLE, 5);
@@ -283,7 +286,7 @@ public class BVAutonomousRed extends LinearOpMode {
 
         waitForStart();
 
-        List<MatOfPoint> contoursRed = BVAutonomousRed.this.contoursRed;
+        List<MatOfPoint> contoursRed = BVAutonomousRedLeft.this.contoursRed;
 
         webcam.setPipeline(redProcessor);
 

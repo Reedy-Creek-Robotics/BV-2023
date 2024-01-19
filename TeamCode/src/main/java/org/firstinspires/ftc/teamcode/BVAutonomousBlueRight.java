@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Autonomous
-public class BVAutonomousBlue extends LinearOpMode {
+public class BVAutonomousBlueRight extends LinearOpMode {
 
     //HSV Red
     //final Scalar LOW_RED1 = new Scalar(248, 100, 100);
@@ -190,7 +190,7 @@ public class BVAutonomousBlue extends LinearOpMode {
 
               Do NOT use both methods in one class, they both rely on the same enum. */
 
-            elementLocation officialSpikeLocation = null;
+            /*elementLocation officialSpikeLocation = null;
 
             if (spikeLocation == elementLocation.UNDECLARED) {
                 officialSpikeLocation = webCamActivateBlue();
@@ -216,7 +216,9 @@ public class BVAutonomousBlue extends LinearOpMode {
 
                 motorAction(0.6, 6, Direction.FORWARD, false);
 
-            }
+            }*/
+
+            motorAction(1, 24, Direction.LEFT, false);
 
             //telemetry.update();
         }
@@ -244,7 +246,7 @@ public class BVAutonomousBlue extends LinearOpMode {
 
                 Imgproc.findContours(morph, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
 
-                BVAutonomousBlue.this.contoursBlue = contours;
+                BVAutonomousBlueRight.this.contoursBlue = contours;
 
                 //Draws rectangles for visual purposes
                 Imgproc.rectangle(input, rect1, PURPLE, 5);
@@ -295,11 +297,11 @@ public class BVAutonomousBlue extends LinearOpMode {
                 telemetry.addData("Bottom Right Rect", rectBr);*/
 
                 if (rect1.contains(contourCent)) {
-                    spikeLocation = BVAutonomousBlue.elementLocation.LEFT;
+                    spikeLocation = BVAutonomousBlueRight.elementLocation.LEFT;
                     return spikeLocation;
                 }
                 if (rect2.contains(contourCent)) {
-                    spikeLocation = BVAutonomousBlue.elementLocation.MIDDLE;
+                    spikeLocation = BVAutonomousBlueRight.elementLocation.MIDDLE;
                     return spikeLocation;
                 }
             } else {
