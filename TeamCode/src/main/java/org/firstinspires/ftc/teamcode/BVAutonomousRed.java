@@ -196,18 +196,40 @@ public class BVAutonomousRed extends LinearOpMode {
                 officialSpikeLocation = webCamActivateRed();
             }
 
-            telemetry.addLine("Detecting BLUE Contours");
+            /*telemetry.addLine("Detecting BLUE Contours");
             telemetry.addData("Blue Element Detected", officialSpikeLocation);
             telemetry.addData("Webcam pipeline activity", webcam.getPipelineTimeMs());
             telemetry.addData("Contours Detected", contoursRed.size());
-            telemetry.addData("Contour Minimum Vision", contourMinimum);
+            telemetry.addData("Contour Minimum Vision", contourMinimum);*/
 
-            if (officialSpikeLocation == elementLocation.RIGHT) {
+            if (officialSpikeLocation == elementLocation.RIGHT || officialSpikeLocation == elementLocation.LEFT || officialSpikeLocation == elementLocation.MIDDLE) {
 
-                motorAction(0.6, 6, Direction.RIGHT, false);
+                motorAction(0.6, 20, Direction.FORWARD, false);
+                telemetry.addLine("FORWARD");
+                telemetry.update();
+
+                motorAction(0.6, 20, Direction.RIGHT, false);
+                telemetry.addLine("RIGHT");
+                telemetry.update();
+
+                motorAction(0.6, 20, Direction.LEFT, false);
+                telemetry.addLine("LEFT");
+                telemetry.update();
+
+                motorAction(0.6, 20, Direction.BACKWARD, false);
+                telemetry.addLine("BACKWARD");
+                telemetry.update();
+
+                motorAction(0.6, 20, Direction.LEFT, true);
+                telemetry.addLine("ROTATE LEFT");
+                telemetry.update();
+
+                motorAction(0.6, 20, Direction.LEFT, true);
+                telemetry.addLine("ROTATE RIGHT");
+                telemetry.update();
 
             }
-            if (officialSpikeLocation == elementLocation.LEFT) {
+            /*if (officialSpikeLocation == elementLocation.LEFT) {
 
                 motorAction(0.6, 6, Direction.LEFT, false);
 
@@ -216,9 +238,7 @@ public class BVAutonomousRed extends LinearOpMode {
 
                 motorAction(0.6, 6, Direction.FORWARD, false);
 
-            }
-
-            telemetry.update();
+            }*/
         }
     }
 
@@ -443,7 +463,7 @@ public class BVAutonomousRed extends LinearOpMode {
             // However, if you require that ALL motors have finished their moves before the robot continues
             // onto the next step, use (isBusy() || isBusy()) in the loop test.
             while (opModeIsActive() &&
-                    (backLeft.getCurrentPosition() != backLeft.getTargetPosition() || backRight.getCurrentPosition() != backRight.getTargetPosition() || frontLeft.getCurrentPosition() != frontLeft.getTargetPosition() || frontRight.getCurrentPosition() != frontRight.getTargetPosition())) {
+                    (frontLeft.isBusy() || frontRight.isBusy() || backLeft.isBusy()) || backRight.isBusy()) {
                 // Display it for the driver.
                 telemetry.addData("Running to", " %7d :%7d", downLeftTarget, downRightTarget, upLeftTarget, upRightTarget);
                 telemetry.addData("Currently at", " at %7d :%7d", backLeft.getCurrentPosition(), backRight.getCurrentPosition(), frontLeft.getCurrentPosition(), frontRight.getCurrentPosition());
