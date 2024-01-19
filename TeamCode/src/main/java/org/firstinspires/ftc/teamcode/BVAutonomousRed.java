@@ -202,34 +202,12 @@ public class BVAutonomousRed extends LinearOpMode {
             telemetry.addData("Contours Detected", contoursRed.size());
             telemetry.addData("Contour Minimum Vision", contourMinimum);*/
 
-            if (officialSpikeLocation == elementLocation.RIGHT || officialSpikeLocation == elementLocation.LEFT || officialSpikeLocation == elementLocation.MIDDLE) {
+            if (officialSpikeLocation == elementLocation.RIGHT) {
 
-                motorAction(0.6, 20, Direction.FORWARD, false);
-                telemetry.addLine("FORWARD");
-                telemetry.update();
-
-                motorAction(0.6, 20, Direction.RIGHT, false);
-                telemetry.addLine("RIGHT");
-                telemetry.update();
-
-                motorAction(0.6, 20, Direction.LEFT, false);
-                telemetry.addLine("LEFT");
-                telemetry.update();
-
-                motorAction(0.6, 20, Direction.BACKWARD, false);
-                telemetry.addLine("BACKWARD");
-                telemetry.update();
-
-                motorAction(0.6, 20, Direction.LEFT, true);
-                telemetry.addLine("ROTATE LEFT");
-                telemetry.update();
-
-                motorAction(0.6, 20, Direction.LEFT, true);
-                telemetry.addLine("ROTATE RIGHT");
-                telemetry.update();
+                motorAction(0.6, 6, Direction.RIGHT, false);
 
             }
-            /*if (officialSpikeLocation == elementLocation.LEFT) {
+            if (officialSpikeLocation == elementLocation.LEFT) {
 
                 motorAction(0.6, 6, Direction.LEFT, false);
 
@@ -238,7 +216,7 @@ public class BVAutonomousRed extends LinearOpMode {
 
                 motorAction(0.6, 6, Direction.FORWARD, false);
 
-            }*/
+            }
         }
     }
 
