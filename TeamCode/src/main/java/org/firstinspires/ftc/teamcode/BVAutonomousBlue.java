@@ -60,6 +60,8 @@ public class BVAutonomousBlue extends LinearOpMode {
 
     int contourMinimum = 10000;
 
+    int count = 0;
+
     int camWidth = 800;
     int camHeight = 600;
 
@@ -69,12 +71,11 @@ public class BVAutonomousBlue extends LinearOpMode {
     enum elementLocation {
         LEFT,
         MIDDLE,
-        RIGHT
+        RIGHT,
+        UNDECLARED
     }
 
-    elementLocation spikeLocation;
-
-    int tickMaximum = 1000;
+    elementLocation spikeLocation = elementLocation.UNDECLARED;
 
     //--------------------------------------------------------
 
@@ -189,7 +190,11 @@ public class BVAutonomousBlue extends LinearOpMode {
 
               Do NOT use both methods in one class, they both rely on the same enum. */
 
-            elementLocation officialSpikeLocation = webCamActivateBlue();
+            elementLocation officialSpikeLocation = null;
+
+            if (spikeLocation == elementLocation.UNDECLARED) {
+                officialSpikeLocation = webCamActivateBlue();
+            }
 
             telemetry.addLine("Detecting BLUE Contours");
             telemetry.addData("Blue Element Detected", officialSpikeLocation);
@@ -197,17 +202,25 @@ public class BVAutonomousBlue extends LinearOpMode {
             telemetry.addData("Contours Detected", contoursBlue.size());
             telemetry.addData("Contour Minimum Vision", contourMinimum);
 
-            /*if (officialSpikeLocation == elementLocation.RIGHT) {
+            if (officialSpikeLocation == elementLocation.RIGHT) {
+
                 motorAction(0.6, 6, Direction.RIGHT, false);
-            } if (officialSpikeLocation == elementLocation.LEFT) {
-                motorAction(0.6, 6, Direction.FORWARD, false);
-            } if (officialSpikeLocation == elementLocation.MIDDLE) {
+
+            }
+            if (officialSpikeLocation == elementLocation.LEFT) {
+
                 motorAction(0.6, 6, Direction.LEFT, false);
-            }*/
+
+            }
+            if (officialSpikeLocation == elementLocation.MIDDLE) {
+
+                motorAction(0.6, 6, Direction.FORWARD, false);
+
+            }
 
 
             //telemetry.addLine("Path Complete");
-            telemetry.update();
+            //telemetry.update();
         }
     }
 
@@ -377,41 +390,50 @@ public class BVAutonomousBlue extends LinearOpMode {
 
         waitForStart();
 
-            webcam.setPipeline(blueProcessor);
+        webcam.setPipeline(blueProcessor);
 
-                for (int i = 0; i < contoursBlue.size(); i++) {
+        for (int i = 0; i < contoursBlue.size(); i++) {
 
-                    //If then statement to clear out unnecessary contours
-                    //if (Math.abs(Imgproc.contourArea(contoursBlue.get(i))) > contourMinimum) {
+            //If then statement to clear out unnecessary contours
+            if (Math.abs(Imgproc.contourArea(contoursBlue.get(i))) > contourMinimum) {
 
-                        Rect rect = Imgproc.boundingRect(contoursBlue.get(i));
-                        Point contourCent = new Point(((rect.br().x + rect.tl().x) / 2.0) + rect.tl().x, ((rect.br().y + rect.tl().y) / 2.0) + rect.tl().y);
+                Rect rect = Imgproc.boundingRect(contoursBlue.get(i));
+                Point contourCent = new Point((((rect.br().x - rect.tl().x) / 2.0) + rect.tl().x), (((rect.br().y - rect.tl().y) / 2.0) + rect.tl().y));
 
-                        Point rectTl = new Point(rect.tl().x, rect.tl().y);
-                        Point rectBr = new Point(rect.br().x, rect.br().y);
+                /*Point rectTl = new Point(rect.tl().x, rect.tl().y);
+                Point rectBr = new Point(rect.br().x, rect.br().y);
 
-                        telemetry.addData("Center point", contourCent);
-                        telemetry.addData("Top Left Rect", rectTl);
-                        telemetry.addData("Bottom Right Rect", rectBr);
+                telemetry.addData("Center point", contourCent);
+                telemetry.addData("Top Left Rect", rectTl);
+                telemetry.addData("Bottom Right Rect", rectBr);*/
 
-                        telemetry.addData("Element area", Imgproc.contourArea(contoursBlue.get(i)));
-
-                        if (rect1.contains(contourCent)) {
-                            spikeLocation = BVAutonomousBlue.elementLocation.LEFT;
-                        } if (rect2.contains(contourCent)) {
-                            spikeLocation = BVAutonomousBlue.elementLocation.MIDDLE;
-                        }
-                    //} else {
-                        telemetry.addData("Non-Element Contour Area", Imgproc.contourArea(contoursBlue.get(i)));
-                    //}
-
-                    telemetry.addData("Contour area", contoursBlue.get(i));
-
-                    telemetry.update();
-
+                if (rect1.contains(contourCent)) {
+                    spikeLocation = BVAutonomousBlue.elementLocation.LEFT;
+                    return spikeLocation;
                 }
+                if (rect2.contains(contourCent)) {
+                    spikeLocation = BVAutonomousBlue.elementLocation.MIDDLE;
+                    return spikeLocation;
+                }
+            } else {
+                telemetry.addData("Non-Element Contour Area", Imgproc.contourArea(contoursBlue.get(i)));
+            }
+
+            //Count trigger to put a time lock before method can declare contour as RIGHT
+            if (i < contoursBlue.size()) {
+                count += 1;
+                telemetry.addData("Count", count);
+                telemetry.update();
+            }
+
+            if (count >= 2500 && spikeLocation != elementLocation.LEFT && spikeLocation != elementLocation.MIDDLE) {
+                spikeLocation = elementLocation.RIGHT;
+                return spikeLocation;
+            }
+        }
 
         return spikeLocation;
+
     }
 
 
@@ -437,10 +459,10 @@ public class BVAutonomousBlue extends LinearOpMode {
             double COUNTS_PER_INCH = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) / (WHEEL_DIAMETER_INCHES * 3.1415);
 
             // Determine new target position, and pass to motor controller
-            downLeftTarget = (int)(inches * COUNTS_PER_INCH);
-            downRightTarget = (int)(inches * COUNTS_PER_INCH);
-            upLeftTarget = (int)(inches * COUNTS_PER_INCH);
-            upRightTarget = (int)(inches * COUNTS_PER_INCH);
+            downLeftTarget = (int) (12 * COUNTS_PER_INCH);
+            downRightTarget = (int) (12 * COUNTS_PER_INCH);
+            upLeftTarget = (int) (12 * COUNTS_PER_INCH);
+            upRightTarget = (int) (12 * COUNTS_PER_INCH);
 
             //Direction configuration
             if (direction == Direction.FORWARD && !rotate) {
@@ -448,37 +470,44 @@ public class BVAutonomousBlue extends LinearOpMode {
                 backRight.setDirection(DcMotorSimple.Direction.FORWARD);
                 frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
                 frontRight.setDirection(DcMotorSimple.Direction.FORWARD);
-            } if (direction == Direction.BACKWARD && !rotate) {
+            }
+            if (direction == Direction.BACKWARD && !rotate) {
                 backLeft.setDirection(DcMotorSimple.Direction.FORWARD);
                 backRight.setDirection(DcMotorSimple.Direction.REVERSE);
                 frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
                 frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
-            } if (direction == Direction.LEFT && !rotate) {
+            }
+            if (direction == Direction.LEFT && !rotate) {
                 backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
                 backRight.setDirection(DcMotorSimple.Direction.REVERSE);
                 frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
                 frontRight.setDirection(DcMotorSimple.Direction.FORWARD);
-            } if (direction == Direction.RIGHT && !rotate) {
+            }
+            if (direction == Direction.RIGHT && !rotate) {
                 backLeft.setDirection(DcMotorSimple.Direction.FORWARD);
                 backRight.setDirection(DcMotorSimple.Direction.FORWARD);
                 frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
                 frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
-            } if (direction == Direction.LEFT && rotate) {
+            }
+            if (direction == Direction.LEFT && rotate) {
                 backLeft.setDirection(DcMotorSimple.Direction.FORWARD);
                 backRight.setDirection(DcMotorSimple.Direction.FORWARD);
                 frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
                 frontRight.setDirection(DcMotorSimple.Direction.FORWARD);
-            } if (direction == Direction.RIGHT && rotate) {
+            }
+            if (direction == Direction.RIGHT && rotate) {
                 backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
                 backRight.setDirection(DcMotorSimple.Direction.REVERSE);
                 frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
                 frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
-            } if (direction == Direction.FORWARD && rotate) {
+            }
+            if (direction == Direction.FORWARD && rotate) {
                 telemetry.addLine("Used rotation == TRUE without an allowable direction;");
                 telemetry.addLine("Stopped robot automatically.");
                 telemetry.update();
                 stop();
-            } if (direction == Direction.BACKWARD && rotate) {
+            }
+            if (direction == Direction.BACKWARD && rotate) {
                 telemetry.addLine("Used rotation == TRUE without an allowable direction;");
                 telemetry.addLine("Stopped robot automatically.");
                 telemetry.update();
