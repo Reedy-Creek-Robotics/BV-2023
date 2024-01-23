@@ -248,12 +248,11 @@ public class BVBlueLeft extends LinearOpMode {
 
         while (opModeIsActive()) {
 
-            telemetry.addLine("Prop found at");
+            telemetry.addData("Prop found at", spikeLocation);
 
             if (spikeLocation == elementLocation.LEFT) {
 
-                telemetry.addLine("Left");
-
+                //Spike Navigation
                 SpinTake.setPower(-0.5);
 
                 driveAction(.6, 1, BVBlueLeft.Direction.FORWARD, BVBlueLeft.Rotate.NO);
@@ -263,7 +262,7 @@ public class BVBlueLeft extends LinearOpMode {
                 driveAction(.6, 6, BVBlueLeft.Direction.FORWARD, BVBlueLeft.Rotate.NO);
                 driveAction(.6, 6, BVBlueLeft.Direction.LEFT, BVBlueLeft.Rotate.YES);
 
-                SpinTake.setPower(0.45);
+                SpinTake.setPower(0.4);
 
                 driveAction(.6, 1.5, BVBlueLeft.Direction.BACKWARD, BVBlueLeft.Rotate.NO);
 
@@ -271,18 +270,25 @@ public class BVBlueLeft extends LinearOpMode {
 
                 driveAction(.3, 1, BVBlueLeft.Direction.FORWARD, BVBlueLeft.Rotate.NO);
 
+                //Parking
+                driveAction(.3, .5, BVBlueLeft.Direction.BACKWARD, BVBlueLeft.Rotate.NO);
+                driveAction(.6, 7.5, BVBlueLeft.Direction.LEFT, BVBlueLeft.Rotate.NO);
+                driveAction(.6, 12, BVBlueLeft.Direction.FORWARD, BVBlueLeft.Rotate.NO);
+
             }
             if (spikeLocation == elementLocation.MIDDLE) {
 
-                telemetry.addLine("Right");
+                //Spike Marker
+                driveAction(.6, 7.5, BVBlueLeft.Direction.FORWARD, BVBlueLeft.Rotate.NO);
 
-                driveAction(.6, 6, BVBlueLeft.Direction.FORWARD, BVBlueLeft.Rotate.NO);
+                //Parking
+                driveAction(.6, 7.5, BVBlueLeft.Direction.BACKWARD, BVBlueLeft.Rotate.NO);
+                driveAction(.6, 12, BVBlueLeft.Direction.LEFT, BVBlueLeft.Rotate.NO);
 
             }
             if (spikeLocation == elementLocation.RIGHT) {
 
-                telemetry.addLine("Middle");
-
+                //Spike Navigation
                 SpinTake.setPower(-0.5);
 
                 driveAction(.6, 1, BVBlueLeft.Direction.FORWARD, BVBlueLeft.Rotate.NO);
@@ -300,9 +306,11 @@ public class BVBlueLeft extends LinearOpMode {
 
                 driveAction(.3, 2.5, BVBlueLeft.Direction.FORWARD, BVBlueLeft.Rotate.NO);
 
-            }
-            if (spikeLocation == elementLocation.UNDECLARED) {
-                telemetry.addLine("Undeclared");
+                //Parking
+                driveAction(.3, 1.25, BVBlueLeft.Direction.BACKWARD, BVBlueLeft.Rotate.NO);
+                driveAction(.6, 7, BVBlueLeft.Direction.RIGHT, BVBlueLeft.Rotate.NO);
+                driveAction(.6, 12, BVBlueLeft.Direction.BACKWARD, BVBlueLeft.Rotate.NO);
+
             }
             telemetry.addData("L", leftCounts);
             telemetry.addData("M", middleCounts);
