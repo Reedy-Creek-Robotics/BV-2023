@@ -53,6 +53,8 @@ public class BVTeleOp extends LinearOpMode {
         motorFrontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         motorFrontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         Slide.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        Slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        Slide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 
         // Adjust the orientation parameters to match your robot
@@ -138,8 +140,8 @@ public class BVTeleOp extends LinearOpMode {
             Slide.setPower(gamepad2.right_stick_y);
 
             //Automation of claw rotation, removes manually controlling the rotation for the claw
-            if (Math.abs(Slide.getCurrentPosition()) >= 1001) {
-                ClawRotation.setPosition(1);
+            if (Math.abs(Slide.getCurrentPosition()) >= 800) {
+                ClawRotation.setPosition(.7);
             } else {
                 ClawRotation.setPosition(0.445);
             }
@@ -175,8 +177,6 @@ public class BVTeleOp extends LinearOpMode {
             }
 
             //plane launcher
-            //Dosen't work any more, we tried but nothing would happen, maybe it was working, but there weren't
-            //any clear signs of functioning
             if (gamepad1.left_bumper) {
                 PlaneLaunchServo.setPosition(0.0);
             }
@@ -242,6 +242,7 @@ public class BVTeleOp extends LinearOpMode {
             telemetry.addData("PlaneServo Pos:", PlaneLaunchServo.getPosition());
             telemetry.addData("Current Idle Slide Power:", slidePowerStop);
             telemetry.addData("Slide Elapsed Time Var:", slideElapsedTime);
+            telemetry.addData("Slide Pos", Slide.getCurrentPosition());
 
             motorFrontLeft.setPower(frontleft);
             motorBackLeft.setPower(backleft);
