@@ -4,6 +4,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.opencv.core.Core;
@@ -69,8 +70,8 @@ public class BVBlueRight extends LinearOpMode {
     int camHeight = 600;
 
     //Variables for detection regions
-    Rect leftRegion = new Rect(0, 0, 300, 600);
-    Rect rightRegion = new Rect(300, 0, 700, 600);
+    Rect leftRegion = new Rect(0, 0, 600, 600);
+    Rect rightRegion = new Rect(600, 0, 500, 600);
 
     //needed enums
     enum elementLocation {
@@ -98,11 +99,24 @@ public class BVBlueRight extends LinearOpMode {
     int rightCounts = 0;
     int middleCounts = 0;
 
+    int downLeftTarget;
+    int downRightTarget;
+    int upLeftTarget;
+    int upRightTarget;
+
+    //Saved doubles for claw positions
+    double OpenClaw = 0.14;
+    double ClosedClaw = 0;
+
     // Hardware declarations
     DcMotor frontLeft;
     DcMotor backLeft;
     DcMotor frontRight;
     DcMotor backRight;
+    DcMotor SpinTake;
+    Servo ClawRotation;
+    Servo Claw;
+    DcMotor Slide;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -115,8 +129,11 @@ public class BVBlueRight extends LinearOpMode {
         backLeft = hardwareMap.dcMotor.get("BackLeft");
         frontRight = hardwareMap.dcMotor.get("FrontRight");
         backRight = hardwareMap.dcMotor.get("BackRight");
-        DcMotor SpinTake = hardwareMap.get(DcMotor.class, "CookieMonster");
-
+        SpinTake = hardwareMap.get(DcMotor.class, "CookieMonster");
+        ClawRotation = hardwareMap.get(Servo.class, "ClawRotation");
+        Claw = hardwareMap.get(Servo.class, "Claw");
+        Claw.setDirection(Servo.Direction.REVERSE);
+        Slide = hardwareMap.get(DcMotor.class, "Slide");
 
         backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -127,11 +144,22 @@ public class BVBlueRight extends LinearOpMode {
         backRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         frontLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         frontRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        Slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         backLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         backRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         frontLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        Slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        ClawRotation.setPosition(.445);
+        Slide.setTargetPosition(-50);
+        Slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        Slide.setPower(.6);
+
+        while (Slide.isBusy()) {
+
+        }
 
         OpenCvWebcam webcam;
         OpenCvPipeline CVProcessor = new OpenCvPipeline() {
@@ -160,9 +188,6 @@ public class BVBlueRight extends LinearOpMode {
                 Imgproc.rectangle(input, leftRegion, PURPLE, 5);
                 Imgproc.rectangle(input, rightRegion, YELLOW, 5);
 
-                telemetry.addLine("Looking for contours in ");
-                telemetry.addData("",CURRENTOPMODE);
-
                 for (int i = 0; i < contours.size(); i++) {
 
                     Rect rect = Imgproc.boundingRect(contours.get(i));
@@ -182,15 +207,15 @@ public class BVBlueRight extends LinearOpMode {
 
                         telemetry.addData("points",contourCenter.x);
 
-                        if(leftRegion.contains(contourCenter)) {
-                            spikeLocation = elementLocation.LEFT;
-                            leftCounts++;
+                        if (leftRegion.contains(contourCenter)) {
+                            spikeLocation = elementLocation.MIDDLE;
+                            middleCounts++;
                             break;
 
                         }
                         else if(rightRegion.contains(contourCenter)) {
-                            spikeLocation = elementLocation.MIDDLE;
-                            middleCounts++;
+                            spikeLocation = elementLocation.RIGHT;
+                            rightCounts++;
                             break;
                         }
 
@@ -198,8 +223,8 @@ public class BVBlueRight extends LinearOpMode {
                     //Extra else statement in order to view contours that are out of range
                     else {
                         Imgproc.drawContours(input, foundContours, i, RED, 5, 2);
-                        spikeLocation = elementLocation.RIGHT;
-                        rightCounts++;
+                        spikeLocation = elementLocation.LEFT;
+                        leftCounts++;
                     }
 
                 }
@@ -208,6 +233,8 @@ public class BVBlueRight extends LinearOpMode {
                 if (spikeLocation== elementLocation.MIDDLE) {telemetry.addLine("Middle");}
                 if (spikeLocation== elementLocation.RIGHT) {telemetry.addLine("Right");}
 
+
+                telemetry.addLine("CAMERA INITIALIZED");
                 telemetry.update();
 
                 return input;
@@ -223,8 +250,6 @@ public class BVBlueRight extends LinearOpMode {
             public void onOpened() {
 
                 webcam.startStreaming(800, 600, OpenCvCameraRotation.UPRIGHT);
-                telemetry.addLine("CAMERA INITIALIZED, You may start");
-                telemetry.update();
 
             }
 
@@ -241,86 +266,154 @@ public class BVBlueRight extends LinearOpMode {
 
         webcam.stopStreaming();
 
-        //spikeLocation = elementLocation.MIDDLE;
-        //telemetry.addLine("FORCING MIDDLE SPIKE");
-
         while (opModeIsActive()) {
 
-            telemetry.addLine("Prop found at");
+            ClawRotation.setPosition(.445);
 
             if (spikeLocation == elementLocation.LEFT) {
 
-                telemetry.addLine("Left");
+                Claw.setPosition(0);
 
-                driveAction(.6, 0.25, BVBlueRight.Direction.RIGHT, BVBlueRight.Rotate.NO);
-
+                //Spike Navigation
                 SpinTake.setPower(-0.5);
-
                 driveAction(.6, 1, BVBlueRight.Direction.FORWARD, BVBlueRight.Rotate.NO);
-
                 SpinTake.setPower(0);
-
-                driveAction(.6, 6, BVBlueRight.Direction.FORWARD, BVBlueRight.Rotate.NO);
-                driveAction(.6, 6, BVBlueRight.Direction.LEFT, BVBlueRight.Rotate.YES);
-
-                SpinTake.setPower(0.45);
-
+                driveAction(.6, 5.5, BVBlueRight.Direction.FORWARD, BVBlueRight.Rotate.NO);
+                driveAction(.6, 5.9, BVBlueRight.Direction.LEFT, BVBlueRight.Rotate.YES);
+                SpinTake.setPower(0.4);
                 driveAction(.6, 1.5, BVBlueRight.Direction.BACKWARD, BVBlueRight.Rotate.NO);
-
                 SpinTake.setPower(0);
+                driveAction(.3, 2.6, BVBlueRight.Direction.FORWARD, BVBlueRight.Rotate.NO);
+                driveAction(.6, 1.8, BVBlueRight.Direction.BACKWARD, BVBlueRight.Rotate.NO);
+                driveAction(.6, 12, Direction.RIGHT, Rotate.YES);
+                driveAction(.6, 8.5, Direction.LEFT, Rotate.NO);
+                driveAction(.6, 19, Direction.BACKWARD, Rotate.NO);
+                driveAction(.6, 10.5, Direction.RIGHT, Rotate.NO);
 
-                driveAction(.3, 1.15, BVBlueRight.Direction.FORWARD, BVBlueRight.Rotate.NO);
+                //Forwards is backwards for the slide, therefore use negative integers past 350.
+                Slide.setTargetPosition(-550);
+                Slide.setPower(.6);
 
+                while (Slide.isBusy()) {
+
+                }
+
+                ClawRotation.setPosition(.7);
+
+                driveAction(.6, 5.4, BVBlueRight.Direction.BACKWARD, BVBlueRight.Rotate.NO);
+                Claw.setPosition(.14);
+                driveAction(.3, 1.5, Direction.FORWARD, Rotate.NO);
+
+                Claw.setPosition(0);
+                ClawRotation.setPosition(.445);
+
+                Slide.setTargetPosition(-50);
+                Slide.setPower(.6);
+
+                while (Slide.isBusy()) {
+
+                }
+
+                driveAction(.6, 9.25, Direction.LEFT, Rotate.NO);
+                driveAction(.6, 5.9, BVBlueRight.Direction.LEFT, BVBlueRight.Rotate.YES);
             }
+
             if (spikeLocation == elementLocation.MIDDLE) {
 
-                telemetry.addLine("Right");
+                Claw.setPosition(0);
 
-                driveAction(.6, 0.25, BVBlueRight.Direction.RIGHT, BVBlueRight.Rotate.NO);
+                //Spike Marker
+                driveAction(.3, 7.35, BVBlueRight.Direction.FORWARD, BVBlueRight.Rotate.NO);
 
-                driveAction(.6, 7.5, BVBlueRight.Direction.FORWARD, BVBlueRight.Rotate.NO);
+                //Blackboard Navigation
+                driveAction(.6, 1.5, Direction.BACKWARD, Rotate.NO);
+                driveAction(.6, 5.25, Direction.RIGHT, Rotate.NO);
+                driveAction(.6, 7.5, Direction.FORWARD, Rotate.NO);
+                driveAction(.6, 6.25, BVBlueRight.Direction.RIGHT, BVBlueRight.Rotate.YES);
+                driveAction(.6, 26, BVBlueRight.Direction.BACKWARD, BVBlueRight.Rotate.NO);
+                driveAction(.6, 7, Direction.RIGHT, Rotate.NO);
 
+                //Forwards is backwards for the slide, therefore use negative integers past 350.
+                Slide.setTargetPosition(-550);
+                Slide.setPower(.6);
+
+                sleep(1500);
+
+                ClawRotation.setPosition(.7);
+
+                driveAction(.6, 2.4, BVBlueRight.Direction.BACKWARD, BVBlueRight.Rotate.NO);
+                Claw.setPosition(.14);
+                driveAction(.3, 2, Direction.FORWARD, Rotate.NO);
+
+                Claw.setPosition(0);
+                ClawRotation.setPosition(.445);
+
+                Slide.setTargetPosition(-50);
+                Slide.setPower(.6);
+
+                while (Slide.isBusy()) {
+
+                }
+
+                driveAction(.6, 7, Direction.LEFT, Rotate.NO);
+                driveAction(.6, 5.75, BVBlueRight.Direction.LEFT, BVBlueRight.Rotate.YES);
             }
+
             if (spikeLocation == elementLocation.RIGHT) {
 
-                telemetry.addLine("Middle");
+                Claw.setPosition(0);
 
-                driveAction(.6, 0.25, BVBlueRight.Direction.RIGHT, BVBlueRight.Rotate.NO);
-
+                //Spike Navigation
                 SpinTake.setPower(-0.5);
-
                 driveAction(.6, 1, BVBlueRight.Direction.FORWARD, BVBlueRight.Rotate.NO);
-
                 SpinTake.setPower(0);
-
+                driveAction(.6, 1, Direction.LEFT, Rotate.NO);
                 driveAction(.6, 6, BVBlueRight.Direction.FORWARD, BVBlueRight.Rotate.NO);
                 driveAction(.6, 6, BVBlueRight.Direction.RIGHT, BVBlueRight.Rotate.YES);
-
-                SpinTake.setPower(0.45);
-
-                driveAction(.6, 1.5, BVBlueRight.Direction.BACKWARD, BVBlueRight.Rotate.NO);
-
+                SpinTake.setPower(0.25);
+                driveAction(.3, 1.7, BVBlueRight.Direction.BACKWARD, BVBlueRight.Rotate.NO);
                 SpinTake.setPower(0);
+                driveAction(.3, 1.975, BVBlueRight.Direction.FORWARD, BVBlueRight.Rotate.NO);
+                driveAction(.3, .5, Direction.BACKWARD, Rotate.NO);
 
-                driveAction(.3, 2.5, BVBlueRight.Direction.FORWARD, BVBlueRight.Rotate.NO);
+                //Blackboard Navigation
+                driveAction(.6, 7, BVBlueRight.Direction.LEFT, BVBlueRight.Rotate.NO);
+                driveAction(.6, 20, BVBlueRight.Direction.BACKWARD, BVBlueRight.Rotate.NO);
+                driveAction(.6, 7, BVBlueRight.Direction.RIGHT, BVBlueRight.Rotate.NO);
+
+                //Forwards is backwards for the slide, therefore use negative integers past 350.
+                Slide.setTargetPosition(-550);
+                Slide.setPower(.6);
+
+                sleep(1500);
+
+                ClawRotation.setPosition(.7);
+
+                driveAction(.6, 2.55, BVBlueRight.Direction.BACKWARD, BVBlueRight.Rotate.NO);
+                Claw.setPosition(.14);
+                driveAction(.3, 2, Direction.FORWARD, Rotate.NO);
+
+                ClawRotation.setPosition(.445);
+                Claw.setPosition(0);
+
+                Slide.setTargetPosition(-50);
+                Slide.setPower(.6);
+
+                while (Slide.isBusy()) {
+
+                }
+
+                driveAction(.6, 6, Direction.LEFT, Rotate.NO);
+                driveAction(.6, 6, BVBlueRight.Direction.LEFT, BVBlueRight.Rotate.YES);
 
             }
-            if (spikeLocation == elementLocation.UNDECLARED) {
-                telemetry.addLine("Undeclared");
-            }
+
             telemetry.addData("L", leftCounts);
             telemetry.addData("M", middleCounts);
             telemetry.addData("R", rightCounts);
 
             telemetry.update();
             sleep(30000);
-            // eject purple pixel, will need to declare intake hardware before implmenting
-
-            // Move to backdrop and lift arm
-
-            // position at backdrop, need to make another if/else tree
-
-            // release pixel and move (if needed)
 
         }
 
@@ -330,11 +423,6 @@ public class BVBlueRight extends LinearOpMode {
     public void driveAction(double power, double inches, BVBlueRight.Direction direction, BVBlueRight.Rotate rotateandmove) {
 
         boolean rotate = rotateandmove != BVBlueRight.Rotate.NO;
-
-        int downLeftTarget;
-        int downRightTarget;
-        int upLeftTarget;
-        int upRightTarget;
 
         // Ensure that the OpMode is still active
         if (opModeIsActive()) {
@@ -424,17 +512,16 @@ public class BVBlueRight extends LinearOpMode {
             // However, if you require that ALL motors have finished their moves before the robot continues
             // onto the next step, use (isBusy() || isBusy()) in the loop test.
             while (opModeIsActive() &&
-                    (backLeft.isBusy() || backRight.isBusy() || frontLeft.isBusy() || frontRight.isBusy())) {
+                    ((backLeft.isBusy() || frontLeft.isBusy()) && (backRight.isBusy() || frontRight.isBusy()))) {
                 // Display it for the driver.
                 telemetry.addData("Running to", " %7d :%7d", downLeftTarget, downRightTarget, upLeftTarget, upRightTarget);
                 telemetry.addData("Currently at", " at %7d :%7d", backLeft.getCurrentPosition(), backRight.getCurrentPosition(), frontLeft.getCurrentPosition(), frontRight.getCurrentPosition());
                 telemetry.update();
             }
 
-            // Stop all motion;
             backLeft.setPower(0);
-            backRight.setPower(0);
             frontLeft.setPower(0);
+            backRight.setPower(0);
             frontRight.setPower(0);
 
             backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);

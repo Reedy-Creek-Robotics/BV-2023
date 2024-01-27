@@ -1,10 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
-import android.transition.Slide;
-
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -28,12 +25,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 
+@Autonomous (name="Red_Left")
 
-@Autonomous (name="Blue_Left")
+public class BVRedLeft extends LinearOpMode {
 
-public class BVBlueLeft extends LinearOpMode {
-
-    final String CURRENTOPMODE = "Blue_LEFT";
+    final String CURRENTOPMODE = "Red_LEFT";
 
     // Declare Image Processing constants and variables
     //RGB
@@ -47,23 +43,34 @@ public class BVBlueLeft extends LinearOpMode {
     final Scalar HIGH_BLUE = new Scalar(130, 255, 255);
 
     //HSV Red
-    final Scalar LOW_RED = new Scalar(0, 0, 0);
-    final Scalar HIGH_RED = new Scalar(0, 0, 0);
+    final Scalar LOW_RED1 = new Scalar(248, 100, 100);
+    final Scalar HIGH_RED1 = new Scalar(0, 255, 255);
+
+    final Scalar LOW_RED2 = new Scalar(0, 100, 100);
+    final Scalar HIGH_RED2 = new Scalar(12, 255, 255);
 
     //HSV values to use
-    final Scalar LOW_HSV_VALUE = LOW_BLUE;
-    final Scalar HIGH_HSV_VALUE = HIGH_BLUE;
+    final Scalar LOW_HSV_VALUE1 = LOW_RED1;
+    final Scalar HIGH_HSV_VALUE1 = HIGH_RED1;
+
+    final Scalar LOW_HSV_VALUE2 = LOW_RED2;
+    final Scalar HIGH_HSV_VALUE2 = HIGH_RED2;
 
     List<MatOfPoint> foundContours = new ArrayList<>();
 
     //Stores the converted RGB to HSV Mat
-    Mat hsvMat = new Mat();
+    Mat hsvMat1 = new Mat();
+    Mat hsvMat2 = new Mat();
     //Stores a 'bitmap' of the values in range of color
-    Mat inRangeMat = new Mat();
+    Mat inRangeMat1 = new Mat();
+    Mat inRangeMat2 = new Mat();
     //Designs how the morph var is stored
     Mat kernel = Mat.ones(7, 7, CvType.CV_8UC1);
     //Stores the morphed Mat which has most sound removed
-    Mat morph = new Mat();
+    Mat morph1 = new Mat();
+    Mat morph2 = new Mat();
+    //Merged Mat of both morph1 and morph2
+    Mat merge = new Mat();
     //Stores the information of a contours' image topology, unused
     Mat hierarchy = new Mat();
     //contourMinimum range for the teleop controls
@@ -74,8 +81,8 @@ public class BVBlueLeft extends LinearOpMode {
     int camHeight = 600;
 
     //Variables for detection regions
-    Rect leftRegion = new Rect(0, 0, 300, 600);
-    Rect rightRegion = new Rect(300, 0, 700, 600);
+    Rect leftRegion = new Rect(0, 0, 250, 600);
+    Rect rightRegion = new Rect(250, 0, 650, 600);
 
     //needed enums
     enum elementLocation {
@@ -102,6 +109,11 @@ public class BVBlueLeft extends LinearOpMode {
     int leftCounts = 0;
     int rightCounts = 0;
     int middleCounts = 0;
+
+    int downLeftTarget;
+    int downRightTarget;
+    int upLeftTarget;
+    int upRightTarget;
 
     //Saved doubles for claw positions
     double OpenClaw = 0.14;
@@ -130,8 +142,8 @@ public class BVBlueLeft extends LinearOpMode {
         backRight = hardwareMap.dcMotor.get("BackRight");
         SpinTake = hardwareMap.get(DcMotor.class, "CookieMonster");
         ClawRotation = hardwareMap.get(Servo.class, "ClawRotation");
-        Claw = hardwareMap.get(Servo.class, "Claw");
-        Claw.setDirection(Servo.Direction.REVERSE);
+        //Claw = hardwareMap.get(Servo.class, "//Claw");
+        //Claw.setDirection(Servo.Direction.REVERSE);
         Slide = hardwareMap.get(DcMotor.class, "Slide");
 
         backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -167,19 +179,26 @@ public class BVBlueLeft extends LinearOpMode {
             public Mat processFrame(Mat input) {
 
                 //Converts all color from RGB to HSV
-                Imgproc.cvtColor(input, hsvMat, Imgproc.COLOR_RGB2HSV);
+                Imgproc.cvtColor(input, hsvMat1, Imgproc.COLOR_RGB2HSV);
+                Imgproc.cvtColor(input, hsvMat2, Imgproc.COLOR_RGB2HSV);
 
                 //Creates a bitmap based on if the color is within the two scalar values
-                Core.inRange(hsvMat, LOW_HSV_VALUE, HIGH_HSV_VALUE, inRangeMat);
+                Core.inRange(hsvMat1, LOW_HSV_VALUE1, HIGH_HSV_VALUE1, inRangeMat1);
+                Core.inRange(hsvMat2, LOW_HSV_VALUE2, HIGH_HSV_VALUE2, inRangeMat2);
 
                 //Removes excess sound to create contours easily
-                Imgproc.morphologyEx(inRangeMat, morph, Imgproc.MORPH_CLOSE, kernel);
-                Imgproc.morphologyEx(morph, morph, Imgproc.MORPH_OPEN, kernel);
+                Imgproc.morphologyEx(inRangeMat1, morph1, Imgproc.MORPH_CLOSE, kernel);
+                Imgproc.morphologyEx(morph1, morph1, Imgproc.MORPH_OPEN, kernel);
+
+                Imgproc.morphologyEx(inRangeMat2, morph2, Imgproc.MORPH_CLOSE, kernel);
+                Imgproc.morphologyEx(morph2, morph2, Imgproc.MORPH_OPEN, kernel);
+
+                Core.bitwise_or(morph1, morph2, merge);
 
                 //Creates a list (array) of contours based on the now morphed image
                 List<MatOfPoint> contours = new ArrayList<>();
 
-                Imgproc.findContours(morph, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
+                Imgproc.findContours(merge, contours, hierarchy, Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
 
                 foundContours = contours;
 
@@ -192,10 +211,6 @@ public class BVBlueLeft extends LinearOpMode {
                     Rect rect = Imgproc.boundingRect(contours.get(i));
                     Point contourCent = new Point(((rect.width - rect.x) / 2.0) + rect.x, ((rect.height - rect.y) / 2.0) + rect.y);
 
-                    //Comment out the if then statement below to draw all contours
-                    //Note that all contours are detected in telemetry regardless
-
-
                     if (Math.abs(Imgproc.contourArea(foundContours.get(i))) > contourMinimum) {
 
                         Imgproc.drawContours(input, foundContours, i, GREEN, 5, 2);
@@ -204,15 +219,15 @@ public class BVBlueLeft extends LinearOpMode {
                         Imgproc.rectangle(input, rect, GREEN);
                         Point contourCenter = new Point(((rect.br().x - rect.tl().x) / 2.0) + rect.tl().x, ((rect.br().y - rect.tl().y) / 2.0) + rect.tl().y);
 
-                        telemetry.addData("points",contourCenter.x);
+                        telemetry.addData("points", contourCenter.x);
 
-                        if(leftRegion.contains(contourCenter)) {
+                        if (leftRegion.contains(contourCenter)) {
                             spikeLocation = elementLocation.LEFT;
                             leftCounts++;
                             break;
 
                         }
-                        else if(rightRegion.contains(contourCenter)) {
+                        else if (rightRegion.contains(contourCenter)) {
                             spikeLocation = elementLocation.MIDDLE;
                             middleCounts++;
                             break;
@@ -228,9 +243,9 @@ public class BVBlueLeft extends LinearOpMode {
 
                 }
 
-                if (spikeLocation==elementLocation.LEFT) {telemetry.addLine("Left");}
-                if (spikeLocation==elementLocation.MIDDLE) {telemetry.addLine("Middle");}
-                if (spikeLocation==elementLocation.RIGHT) {telemetry.addLine("Right");}
+                if (spikeLocation== elementLocation.LEFT) {telemetry.addLine("Left");}
+                if (spikeLocation== elementLocation.MIDDLE) {telemetry.addLine("Middle");}
+                if (spikeLocation== elementLocation.RIGHT) {telemetry.addLine("Right");}
 
 
                 telemetry.addLine("CAMERA INITIALIZED");
@@ -271,20 +286,22 @@ public class BVBlueLeft extends LinearOpMode {
 
             if (spikeLocation == elementLocation.LEFT) {
 
-                Claw.setPosition(0);
+                //Claw.setPosition(0);
 
                 //Spike Navigation
                 SpinTake.setPower(-0.5);
-                driveAction(.6, 1, BVBlueLeft.Direction.FORWARD, BVBlueLeft.Rotate.NO);
+                driveAction(.6, 1, BVRedLeft.Direction.FORWARD, BVRedLeft.Rotate.NO);
                 SpinTake.setPower(0);
-                driveAction(.6, 5.9, BVBlueLeft.Direction.RIGHT, BVBlueLeft.Rotate.YES);
-                driveAction(.6, 5, Direction.BACKWARD, Rotate.NO);
-                driveAction(.6, 7.5, Direction.LEFT, Rotate.NO);
-                SpinTake.setPower(0.4);
-                driveAction(.6, 1.5, BVBlueLeft.Direction.BACKWARD, BVBlueLeft.Rotate.NO);
+                driveAction(.6, 5.5, BVRedLeft.Direction.FORWARD, BVRedLeft.Rotate.NO);
+                driveAction(.6, 5.9, BVRedLeft.Direction.LEFT, BVRedLeft.Rotate.YES);
+                SpinTake.setPower(0.25);
+                driveAction(.6, 1.75, BVRedLeft.Direction.BACKWARD, BVRedLeft.Rotate.NO);
                 SpinTake.setPower(0);
-                driveAction(.3, 2.1, BVBlueLeft.Direction.FORWARD, BVBlueLeft.Rotate.NO);
-                driveAction(.6, 1.9, Direction.RIGHT, Rotate.NO);
+                driveAction(.3, 1.85, BVRedLeft.Direction.FORWARD, BVRedLeft.Rotate.NO);
+                driveAction(.6, .25, BVRedLeft.Direction.BACKWARD, BVRedLeft.Rotate.NO);
+                driveAction(.6, 8.5, Direction.RIGHT, Rotate.NO);
+                driveAction(.6, 20, Direction.BACKWARD, Rotate.NO);
+                driveAction(.6, 6.25, Direction.LEFT, Rotate.NO);
 
                 //Forwards is backwards for the slide, therefore use negative integers past 350.
                 Slide.setTargetPosition(-550);
@@ -296,11 +313,11 @@ public class BVBlueLeft extends LinearOpMode {
 
                 ClawRotation.setPosition(.7);
 
-                driveAction(.6, 5.4, BVBlueLeft.Direction.BACKWARD, BVBlueLeft.Rotate.NO);
-                Claw.setPosition(.14);
+                driveAction(.3, 5.4, BVRedLeft.Direction.BACKWARD, BVRedLeft.Rotate.NO);
+                //Claw.setPosition(.14);
                 driveAction(.3, 1.5, Direction.FORWARD, Rotate.NO);
 
-                Claw.setPosition(0);
+                //Claw.setPosition(0);
                 ClawRotation.setPosition(.445);
 
                 Slide.setTargetPosition(-50);
@@ -310,38 +327,38 @@ public class BVBlueLeft extends LinearOpMode {
 
                 }
 
-                driveAction(.6, 5, Direction.RIGHT, Rotate.NO);
-                driveAction(.6, 5.9, BVBlueLeft.Direction.LEFT, BVBlueLeft.Rotate.YES);
+                driveAction(.6, 5.25, Direction.RIGHT, Rotate.NO);
+                driveAction(.6, 5.9, BVRedLeft.Direction.RIGHT, BVRedLeft.Rotate.YES);
             }
 
             if (spikeLocation == elementLocation.MIDDLE) {
 
-                Claw.setPosition(0);
+                //Claw.setPosition(0);
 
                 //Spike Marker
-                driveAction(.6, 7.35, BVBlueLeft.Direction.FORWARD, BVBlueLeft.Rotate.NO);
+                driveAction(.45, 7.35, BVRedLeft.Direction.FORWARD, BVRedLeft.Rotate.NO);
 
                 //Blackboard Navigation
                 driveAction(.6, 1.5, Direction.BACKWARD, Rotate.NO);
-                driveAction(.6, 6.25, BVBlueLeft.Direction.RIGHT, BVBlueLeft.Rotate.YES);
-                driveAction(.6, 8, BVBlueLeft.Direction.BACKWARD, BVBlueLeft.Rotate.NO);
-                driveAction(.6, 1.5, Direction.LEFT, Rotate.NO);
+                driveAction(.6, 5.25, Direction.LEFT, Rotate.NO);
+                driveAction(.6, 7.5, Direction.FORWARD, Rotate.NO);
+                driveAction(.6, 6.25, BVRedLeft.Direction.LEFT, BVRedLeft.Rotate.YES);
+                driveAction(.6, 26, BVRedLeft.Direction.BACKWARD, BVRedLeft.Rotate.NO);
+                driveAction(.6, 7.75, Direction.LEFT, Rotate.NO);
 
                 //Forwards is backwards for the slide, therefore use negative integers past 350.
                 Slide.setTargetPosition(-550);
                 Slide.setPower(.6);
 
-                while (Slide.isBusy()) {
-
-                }
+                sleep(1500);
 
                 ClawRotation.setPosition(.7);
 
-                driveAction(.6, 2.4, BVBlueLeft.Direction.BACKWARD, BVBlueLeft.Rotate.NO);
-                Claw.setPosition(.14);
+                driveAction(.3, 2.4, BVRedLeft.Direction.BACKWARD, BVRedLeft.Rotate.NO);
+                //Claw.setPosition(.14);
                 driveAction(.3, 2, Direction.FORWARD, Rotate.NO);
 
-                Claw.setPosition(0);
+                //Claw.setPosition(0);
                 ClawRotation.setPosition(.445);
 
                 Slide.setTargetPosition(-50);
@@ -351,52 +368,47 @@ public class BVBlueLeft extends LinearOpMode {
 
                 }
 
-                driveAction(.6, 8, Direction.RIGHT, Rotate.NO);
-                driveAction(.6, 6.25, BVBlueLeft.Direction.LEFT, BVBlueLeft.Rotate.YES);
+                driveAction(.6, 5.5, Direction.RIGHT, Rotate.NO);
+                driveAction(.6, 5.75, BVRedLeft.Direction.RIGHT, BVRedLeft.Rotate.YES);
             }
 
             if (spikeLocation == elementLocation.RIGHT) {
 
-                Claw.setPosition(0);
+                //Claw.setPosition(0);
 
                 //Spike Navigation
                 SpinTake.setPower(-0.5);
-
-                driveAction(.6, 1, BVBlueLeft.Direction.FORWARD, BVBlueLeft.Rotate.NO);
-
+                driveAction(.6, 1, BVRedLeft.Direction.FORWARD, BVRedLeft.Rotate.NO);
                 SpinTake.setPower(0);
-
-                driveAction(.6, 6, BVBlueLeft.Direction.FORWARD, BVBlueLeft.Rotate.NO);
-                driveAction(.6, 6, BVBlueLeft.Direction.RIGHT, BVBlueLeft.Rotate.YES);
-
-                SpinTake.setPower(0.45);
-
-                driveAction(.6, 1.5, BVBlueLeft.Direction.BACKWARD, BVBlueLeft.Rotate.NO);
-
+                driveAction(.6, 1, Direction.RIGHT, Rotate.NO);
+                driveAction(.6, 6, BVRedLeft.Direction.FORWARD, BVRedLeft.Rotate.NO);
+                driveAction(.6, 6, BVRedLeft.Direction.RIGHT, BVRedLeft.Rotate.YES);
+                SpinTake.setPower(0.25);
+                driveAction(.3, 1.7, BVRedLeft.Direction.BACKWARD, BVRedLeft.Rotate.NO);
                 SpinTake.setPower(0);
-
-                driveAction(.3, 2.5, BVBlueLeft.Direction.FORWARD, BVBlueLeft.Rotate.NO);
+                driveAction(.3, 1.9, BVRedLeft.Direction.FORWARD, BVRedLeft.Rotate.NO);
+                driveAction(.3, .5, Direction.BACKWARD, Rotate.NO);
 
                 //Blackboard Navigation
-                driveAction(.6, 8, BVBlueLeft.Direction.BACKWARD, BVBlueLeft.Rotate.NO);
-                driveAction(.6, 3, Direction.LEFT, Rotate.NO);
+                driveAction(.6, 7.5, BVRedLeft.Direction.LEFT, BVRedLeft.Rotate.NO);
+                driveAction(.6, 12, Direction.RIGHT, Rotate.YES);
+                driveAction(.6, 20, BVRedLeft.Direction.BACKWARD, BVRedLeft.Rotate.NO);
+                driveAction(.6, 9.25, BVRedLeft.Direction.LEFT, BVRedLeft.Rotate.NO);
 
                 //Forwards is backwards for the slide, therefore use negative integers past 350.
                 Slide.setTargetPosition(-550);
                 Slide.setPower(.6);
 
-                while (Slide.isBusy()) {
-
-                }
+                sleep(1500);
 
                 ClawRotation.setPosition(.7);
 
-                driveAction(.6, 2.4, BVBlueLeft.Direction.BACKWARD, BVBlueLeft.Rotate.NO);
-                Claw.setPosition(.14);
+                driveAction(.6, 2.9, BVRedLeft.Direction.BACKWARD, BVRedLeft.Rotate.NO);
+                //Claw.setPosition(.14);
                 driveAction(.3, 2, Direction.FORWARD, Rotate.NO);
 
                 ClawRotation.setPosition(.445);
-                Claw.setPosition(0);
+                //Claw.setPosition(0);
 
                 Slide.setTargetPosition(-50);
                 Slide.setPower(.6);
@@ -405,8 +417,8 @@ public class BVBlueLeft extends LinearOpMode {
 
                 }
 
-                driveAction(.6, 8, Direction.RIGHT, Rotate.NO);
-                driveAction(.6, 6, BVBlueLeft.Direction.LEFT, BVBlueLeft.Rotate.YES);
+                driveAction(.6, 6, Direction.RIGHT, Rotate.NO);
+                driveAction(.6, 6, BVRedLeft.Direction.RIGHT, BVRedLeft.Rotate.YES);
 
             }
 
@@ -422,14 +434,9 @@ public class BVBlueLeft extends LinearOpMode {
 
     }
 
-    public void driveAction(double power, double inches, BVBlueLeft.Direction direction, BVBlueLeft.Rotate rotateandmove) {
+    public void driveAction(double power, double inches, BVRedLeft.Direction direction, BVRedLeft.Rotate rotateandmove) {
 
-        boolean rotate = rotateandmove != BVBlueLeft.Rotate.NO;
-
-        int downLeftTarget;
-        int downRightTarget;
-        int upLeftTarget;
-        int upRightTarget;
+        boolean rotate = rotateandmove != BVRedLeft.Rotate.NO;
 
         // Ensure that the OpMode is still active
         if (opModeIsActive()) {
@@ -452,42 +459,42 @@ public class BVBlueLeft extends LinearOpMode {
             upRightTarget = (int)(inches * COUNTS_PER_INCH);
 
             //Direction configuration
-            if (direction == BVBlueLeft.Direction.FORWARD && !rotate) {
+            if (direction == BVRedLeft.Direction.FORWARD && !rotate) {
                 backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
                 backRight.setDirection(DcMotorSimple.Direction.FORWARD);
                 frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
                 frontRight.setDirection(DcMotorSimple.Direction.FORWARD);
-            } if (direction == BVBlueLeft.Direction.BACKWARD && !rotate) {
+            } if (direction == BVRedLeft.Direction.BACKWARD && !rotate) {
                 backLeft.setDirection(DcMotorSimple.Direction.FORWARD);
                 backRight.setDirection(DcMotorSimple.Direction.REVERSE);
                 frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
                 frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
-            } if (direction == BVBlueLeft.Direction.LEFT && !rotate) {
+            } if (direction == BVRedLeft.Direction.LEFT && !rotate) {
                 backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
                 backRight.setDirection(DcMotorSimple.Direction.REVERSE);
                 frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
                 frontRight.setDirection(DcMotorSimple.Direction.FORWARD);
-            } if (direction == BVBlueLeft.Direction.RIGHT && !rotate) {
+            } if (direction == BVRedLeft.Direction.RIGHT && !rotate) {
                 backLeft.setDirection(DcMotorSimple.Direction.FORWARD);
                 backRight.setDirection(DcMotorSimple.Direction.FORWARD);
                 frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
                 frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
-            } if (direction == BVBlueLeft.Direction.LEFT && rotate) {
+            } if (direction == BVRedLeft.Direction.LEFT && rotate) {
                 backLeft.setDirection(DcMotorSimple.Direction.FORWARD);
                 backRight.setDirection(DcMotorSimple.Direction.FORWARD);
                 frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
                 frontRight.setDirection(DcMotorSimple.Direction.FORWARD);
-            } if (direction == BVBlueLeft.Direction.RIGHT && rotate) {
+            } if (direction == BVRedLeft.Direction.RIGHT && rotate) {
                 backLeft.setDirection(DcMotorSimple.Direction.REVERSE);
                 backRight.setDirection(DcMotorSimple.Direction.REVERSE);
                 frontLeft.setDirection(DcMotorSimple.Direction.REVERSE);
                 frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
-            } if (direction == BVBlueLeft.Direction.FORWARD && rotate) {
+            } if (direction == BVRedLeft.Direction.FORWARD && rotate) {
                 telemetry.addLine("Used rotation == TRUE without an allowable direction;");
                 telemetry.addLine("Stopped robot automatically.");
                 telemetry.update();
                 stop();
-            } if (direction == BVBlueLeft.Direction.BACKWARD && rotate) {
+            } if (direction == BVRedLeft.Direction.BACKWARD && rotate) {
                 telemetry.addLine("Used rotation == TRUE without an allowable direction;");
                 telemetry.addLine("Stopped robot automatically.");
                 telemetry.update();
@@ -526,10 +533,9 @@ public class BVBlueLeft extends LinearOpMode {
                 telemetry.update();
             }
 
-            // Stop all motion;
             backLeft.setPower(0);
-            backRight.setPower(0);
             frontLeft.setPower(0);
+            backRight.setPower(0);
             frontRight.setPower(0);
 
             backLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);

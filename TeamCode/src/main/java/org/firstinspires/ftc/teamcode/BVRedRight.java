@@ -166,7 +166,7 @@ public class BVRedRight extends LinearOpMode {
 
         Claw.setPosition(0);
         ClawRotation.setPosition(.445);
-        Slide.setTargetPosition(35);
+        Slide.setTargetPosition(-50);
         Slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         Slide.setPower(.6);
 
@@ -391,9 +391,7 @@ public class BVRedRight extends LinearOpMode {
                 Slide.setTargetPosition(-550);
                 Slide.setPower(.6);
 
-                while (Slide.isBusy()) {
-                    sleep(10);
-                }
+                sleep(1500);
 
                 ClawRotation.setPosition(.7);
 
@@ -526,7 +524,7 @@ public class BVRedRight extends LinearOpMode {
             // However, if you require that ALL motors have finished their moves before the robot continues
             // onto the next step, use (isBusy() || isBusy()) in the loop test.
             while (opModeIsActive() &&
-                    (backLeft.isBusy() || backRight.isBusy() || frontLeft.isBusy() || frontRight.isBusy())) {
+                    ((backLeft.isBusy() || frontLeft.isBusy()) && (backRight.isBusy() || frontRight.isBusy()))) {
                 // Display it for the driver.
                 telemetry.addData("Running to", " %7d :%7d", downLeftTarget, downRightTarget, upLeftTarget, upRightTarget);
                 telemetry.addData("Currently at", " at %7d :%7d", backLeft.getCurrentPosition(), backRight.getCurrentPosition(), frontLeft.getCurrentPosition(), frontRight.getCurrentPosition());
