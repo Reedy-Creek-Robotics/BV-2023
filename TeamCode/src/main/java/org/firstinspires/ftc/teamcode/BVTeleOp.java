@@ -62,7 +62,6 @@ public class BVTeleOp extends LinearOpMode {
                 RevHubOrientationOnRobot.LogoFacingDirection.FORWARD,
                 RevHubOrientationOnRobot.UsbFacingDirection.UP));
         // Without this, the REV Hub's orientation is assumed to be logo up / USB forward
-        imu.initialize(parameters);
         imu.resetYaw();
 
 

@@ -232,6 +232,8 @@ public class BVBlueLeft extends LinearOpMode {
                 if (spikeLocation==elementLocation.MIDDLE) {telemetry.addLine("Middle");}
                 if (spikeLocation==elementLocation.RIGHT) {telemetry.addLine("Right");}
 
+
+                telemetry.addLine("CAMERA INITIALIZED");
                 telemetry.update();
 
                 return input;
@@ -247,8 +249,6 @@ public class BVBlueLeft extends LinearOpMode {
             public void onOpened() {
 
                 webcam.startStreaming(800, 600, OpenCvCameraRotation.UPRIGHT);
-                telemetry.addLine("CAMERA INITIALIZED, Add in yellow pixel and start");
-                telemetry.update();
 
             }
 
@@ -261,21 +261,17 @@ public class BVBlueLeft extends LinearOpMode {
 
         webcam.setPipeline(CVProcessor);
 
-        Claw.setPosition(.14);
-
         waitForStart();
 
         webcam.stopStreaming();
 
         while (opModeIsActive()) {
 
-            Claw.setPosition(0);
-
-            telemetry.addData("Prop found at", spikeLocation);
+            ClawRotation.setPosition(.445);
 
             if (spikeLocation == elementLocation.LEFT) {
 
-                ClawRotation.setPosition(.445);
+                Claw.setPosition(0);
 
                 //Spike Navigation
                 SpinTake.setPower(-0.5);
@@ -302,7 +298,7 @@ public class BVBlueLeft extends LinearOpMode {
 
                 driveAction(.6, 5.4, BVBlueLeft.Direction.BACKWARD, BVBlueLeft.Rotate.NO);
                 Claw.setPosition(.14);
-                driveAction(.6, 1.5, Direction.FORWARD, Rotate.NO);
+                driveAction(.3, 1.5, Direction.FORWARD, Rotate.NO);
 
                 Claw.setPosition(0);
                 ClawRotation.setPosition(.445);
@@ -315,9 +311,12 @@ public class BVBlueLeft extends LinearOpMode {
                 }
 
                 driveAction(.6, 5, Direction.RIGHT, Rotate.NO);
+                driveAction(.6, 5.9, BVBlueLeft.Direction.LEFT, BVBlueLeft.Rotate.YES);
             }
 
             if (spikeLocation == elementLocation.MIDDLE) {
+
+                Claw.setPosition(0);
 
                 //Spike Marker
                 driveAction(.6, 7.35, BVBlueLeft.Direction.FORWARD, BVBlueLeft.Rotate.NO);
@@ -340,7 +339,7 @@ public class BVBlueLeft extends LinearOpMode {
 
                 driveAction(.6, 2.4, BVBlueLeft.Direction.BACKWARD, BVBlueLeft.Rotate.NO);
                 Claw.setPosition(.14);
-                driveAction(.6, 2, Direction.FORWARD, Rotate.NO);
+                driveAction(.3, 2, Direction.FORWARD, Rotate.NO);
 
                 Claw.setPosition(0);
                 ClawRotation.setPosition(.445);
@@ -353,9 +352,12 @@ public class BVBlueLeft extends LinearOpMode {
                 }
 
                 driveAction(.6, 8, Direction.RIGHT, Rotate.NO);
+                driveAction(.6, 6.25, BVBlueLeft.Direction.LEFT, BVBlueLeft.Rotate.YES);
             }
 
             if (spikeLocation == elementLocation.RIGHT) {
+
+                Claw.setPosition(0);
 
                 //Spike Navigation
                 SpinTake.setPower(-0.5);
@@ -391,7 +393,7 @@ public class BVBlueLeft extends LinearOpMode {
 
                 driveAction(.6, 2.4, BVBlueLeft.Direction.BACKWARD, BVBlueLeft.Rotate.NO);
                 Claw.setPosition(.14);
-                driveAction(.6, 2, Direction.FORWARD, Rotate.NO);
+                driveAction(.3, 2, Direction.FORWARD, Rotate.NO);
 
                 ClawRotation.setPosition(.445);
                 Claw.setPosition(0);
@@ -404,6 +406,7 @@ public class BVBlueLeft extends LinearOpMode {
                 }
 
                 driveAction(.6, 8, Direction.RIGHT, Rotate.NO);
+                driveAction(.6, 6, BVBlueLeft.Direction.LEFT, BVBlueLeft.Rotate.YES);
 
             }
 

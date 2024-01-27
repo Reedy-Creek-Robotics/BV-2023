@@ -1,9 +1,11 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -25,11 +27,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-@Autonomous (name="Blue_Left")
+@Autonomous (name="Red_Right")
 
 public class BVRedRight extends LinearOpMode {
 
-    final String CURRENTOPMODE = "Blue_LEFT";
+    final String CURRENTOPMODE = "Red_RIGHT";
 
     // Declare Image Processing constants and variables
     //RGB
@@ -83,8 +85,8 @@ public class BVRedRight extends LinearOpMode {
     int camHeight = 600;
 
     //Variables for detection regions
-    Rect leftRegion = new Rect(0, 0, 300, 600);
-    Rect rightRegion = new Rect(300, 0, 700, 600);
+    Rect leftRegion = new Rect(0, 0, 600, 600);
+    Rect rightRegion = new Rect(600, 0, 400, 600);
 
     //needed enums
     enum elementLocation {
@@ -126,6 +128,8 @@ public class BVRedRight extends LinearOpMode {
     Servo Claw;
     DcMotor Slide;
 
+
+
     @Override
     public void runOpMode() throws InterruptedException {
 
@@ -160,8 +164,9 @@ public class BVRedRight extends LinearOpMode {
         frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         Slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
+        Claw.setPosition(0);
         ClawRotation.setPosition(.445);
-        Slide.setTargetPosition(38);
+        Slide.setTargetPosition(35);
         Slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         Slide.setPower(.6);
 
@@ -208,10 +213,6 @@ public class BVRedRight extends LinearOpMode {
                     Rect rect = Imgproc.boundingRect(contours.get(i));
                     Point contourCent = new Point(((rect.width - rect.x) / 2.0) + rect.x, ((rect.height - rect.y) / 2.0) + rect.y);
 
-                    //Comment out the if then statement below to draw all contours
-                    //Note that all contours are detected in telemetry regardless
-
-
                     if (Math.abs(Imgproc.contourArea(foundContours.get(i))) > contourMinimum) {
 
                         Imgproc.drawContours(input, foundContours, i, GREEN, 5, 2);
@@ -220,17 +221,17 @@ public class BVRedRight extends LinearOpMode {
                         Imgproc.rectangle(input, rect, GREEN);
                         Point contourCenter = new Point(((rect.br().x - rect.tl().x) / 2.0) + rect.tl().x, ((rect.br().y - rect.tl().y) / 2.0) + rect.tl().y);
 
-                        telemetry.addData("points",contourCenter.x);
+                        telemetry.addData("points", contourCenter.x);
 
-                        if(leftRegion.contains(contourCenter)) {
-                            spikeLocation = elementLocation.LEFT;
-                            leftCounts++;
+                        if (leftRegion.contains(contourCenter)) {
+                            spikeLocation = elementLocation.MIDDLE;
+                            middleCounts++;
                             break;
 
                         }
-                        else if(rightRegion.contains(contourCenter)) {
-                            spikeLocation = elementLocation.MIDDLE;
-                            middleCounts++;
+                        else if (rightRegion.contains(contourCenter)) {
+                            spikeLocation = elementLocation.RIGHT;
+                            rightCounts++;
                             break;
                         }
 
@@ -238,15 +239,17 @@ public class BVRedRight extends LinearOpMode {
                     //Extra else statement in order to view contours that are out of range
                     else {
                         Imgproc.drawContours(input, foundContours, i, RED, 5, 2);
-                        spikeLocation = elementLocation.RIGHT;
-                        rightCounts++;
+                        spikeLocation = elementLocation.LEFT;
+                        leftCounts++;
                     }
 
                 }
 
-                if (spikeLocation== elementLocation.LEFT) {telemetry.addLine("Left");}
-                if (spikeLocation== elementLocation.MIDDLE) {telemetry.addLine("Middle");}
-                if (spikeLocation== elementLocation.RIGHT) {telemetry.addLine("Right");}
+                if (spikeLocation == elementLocation.LEFT) {telemetry.addLine("Left");}
+                if (spikeLocation == elementLocation.MIDDLE) {telemetry.addLine("Middle");}
+                if (spikeLocation == elementLocation.RIGHT) {telemetry.addLine("Right");}
+
+                telemetry.addLine("CAMERA INITIALIZED");
 
                 telemetry.update();
 
@@ -263,8 +266,6 @@ public class BVRedRight extends LinearOpMode {
             public void onOpened() {
 
                 webcam.startStreaming(800, 600, OpenCvCameraRotation.UPRIGHT);
-                telemetry.addLine("CAMERA INITIALIZED, Add in yellow pixel and start");
-                telemetry.update();
 
             }
 
@@ -277,34 +278,29 @@ public class BVRedRight extends LinearOpMode {
 
         webcam.setPipeline(CVProcessor);
 
-        Claw.setPosition(.14);
-
         waitForStart();
 
         webcam.stopStreaming();
 
         while (opModeIsActive()) {
 
-            Claw.setPosition(0);
+            ClawRotation.setPosition(.445);
 
             telemetry.addData("Prop found at", spikeLocation);
 
             if (spikeLocation == elementLocation.LEFT) {
 
-                ClawRotation.setPosition(.445);
-
                 //Spike Navigation
                 SpinTake.setPower(-0.5);
-                driveAction(.6, 1, BVRedRight.Direction.FORWARD, BVRedRight.Rotate.NO);
+                driveAction(.6, 8, Direction.FORWARD, Rotate.NO);
                 SpinTake.setPower(0);
-                driveAction(.6, 5.9, BVRedRight.Direction.RIGHT, BVRedRight.Rotate.YES);
-                driveAction(.6, 5, Direction.BACKWARD, Rotate.NO);
-                driveAction(.6, 7.5, Direction.LEFT, Rotate.NO);
+                driveAction(.6, 6.25, Direction.LEFT, Rotate.YES);
                 SpinTake.setPower(0.4);
-                driveAction(.6, 1.5, BVRedRight.Direction.BACKWARD, BVRedRight.Rotate.NO);
+                driveAction(.6, 1.5, Direction.BACKWARD, Rotate.NO);
                 SpinTake.setPower(0);
-                driveAction(.3, 2.1, BVRedRight.Direction.FORWARD, BVRedRight.Rotate.NO);
-                driveAction(.6, 1.9, Direction.RIGHT, Rotate.NO);
+                driveAction(.3, 2.65, Direction.FORWARD, Rotate.NO);
+                driveAction(.6, 9.05, Direction.BACKWARD, Rotate.NO);
+                driveAction(.6, 1, Direction.RIGHT, Rotate.NO);
 
                 //Forwards is backwards for the slide, therefore use negative integers past 350.
                 Slide.setTargetPosition(-550);
@@ -316,9 +312,9 @@ public class BVRedRight extends LinearOpMode {
 
                 ClawRotation.setPosition(.7);
 
-                driveAction(.6, 5.4, BVRedRight.Direction.BACKWARD, BVRedRight.Rotate.NO);
+                driveAction(.6, 2.15, Direction.BACKWARD, Rotate.NO);
                 Claw.setPosition(.14);
-                driveAction(.6, 1.5, Direction.FORWARD, Rotate.NO);
+                driveAction(.3, 2, Direction.FORWARD, Rotate.NO);
 
                 Claw.setPosition(0);
                 ClawRotation.setPosition(.445);
@@ -330,19 +326,20 @@ public class BVRedRight extends LinearOpMode {
 
                 }
 
-                driveAction(.6, 5, Direction.RIGHT, Rotate.NO);
+                driveAction(.6, 9, Direction.LEFT, Rotate.NO);
+                driveAction(.6, 6.25, Direction.RIGHT, Rotate.YES);
+
             }
 
             if (spikeLocation == elementLocation.MIDDLE) {
 
-                //Spike Marker
-                driveAction(.6, 7.35, BVRedRight.Direction.FORWARD, BVRedRight.Rotate.NO);
+                driveAction(.6, 7.35, Direction.FORWARD, Rotate.NO);
 
                 //Blackboard Navigation
                 driveAction(.6, 1.5, Direction.BACKWARD, Rotate.NO);
-                driveAction(.6, 6.25, BVRedRight.Direction.RIGHT, BVRedRight.Rotate.YES);
-                driveAction(.6, 8, BVRedRight.Direction.BACKWARD, BVRedRight.Rotate.NO);
-                driveAction(.6, 1.5, Direction.LEFT, Rotate.NO);
+                driveAction(.6, 6.25, Direction.LEFT, Rotate.YES);
+                driveAction(.6, 8, Direction.BACKWARD, Rotate.NO);
+                driveAction(.6, 1.5, Direction.RIGHT, Rotate.NO);
 
                 //Forwards is backwards for the slide, therefore use negative integers past 350.
                 Slide.setTargetPosition(-550);
@@ -354,9 +351,9 @@ public class BVRedRight extends LinearOpMode {
 
                 ClawRotation.setPosition(.7);
 
-                driveAction(.6, 2.4, BVRedRight.Direction.BACKWARD, BVRedRight.Rotate.NO);
+                driveAction(.6, 2.15, Direction.BACKWARD, Rotate.NO);
                 Claw.setPosition(.14);
-                driveAction(.6, 2, Direction.FORWARD, Rotate.NO);
+                driveAction(.3, 2, Direction.FORWARD, Rotate.NO);
 
                 Claw.setPosition(0);
                 ClawRotation.setPosition(.445);
@@ -368,49 +365,44 @@ public class BVRedRight extends LinearOpMode {
 
                 }
 
-                driveAction(.6, 8, Direction.RIGHT, Rotate.NO);
+                driveAction(.6, 6.5, Direction.LEFT, Rotate.NO);
+                driveAction(.6, 6.25, Direction.RIGHT, Rotate.YES);
+
             }
 
             if (spikeLocation == elementLocation.RIGHT) {
 
                 //Spike Navigation
                 SpinTake.setPower(-0.5);
-
-                driveAction(.6, 1, BVRedRight.Direction.FORWARD, BVRedRight.Rotate.NO);
-
+                driveAction(.6, 1, Direction.FORWARD, Rotate.NO);
                 SpinTake.setPower(0);
-
-                driveAction(.6, 6, BVRedRight.Direction.FORWARD, BVRedRight.Rotate.NO);
-                driveAction(.6, 6, BVRedRight.Direction.RIGHT, BVRedRight.Rotate.YES);
-
-                SpinTake.setPower(0.45);
-
-                driveAction(.6, 1.5, BVRedRight.Direction.BACKWARD, BVRedRight.Rotate.NO);
-
+                driveAction(.6, 6, Direction.RIGHT, Rotate.NO);
+                driveAction(.6, 6.5, Direction.FORWARD, Rotate.NO);
+                driveAction(.6, 6.25, Direction.LEFT, Rotate.YES);
+                SpinTake.setPower(0.4);
+                driveAction(.6, 1.8, Direction.BACKWARD, Rotate.NO);
                 SpinTake.setPower(0);
+                driveAction(.3, 2.5, Direction.FORWARD, Rotate.NO);
 
-                driveAction(.6, 2.5, BVRedRight.Direction.FORWARD, BVRedRight.Rotate.NO);
-
-                //Blackboard Navigation
-                driveAction(.6, 8, BVRedRight.Direction.BACKWARD, BVRedRight.Rotate.NO);
-                driveAction(.6, 3, Direction.LEFT, Rotate.NO);
+                driveAction(.6, 3.85, Direction.BACKWARD,  Rotate.NO);
+                driveAction(.6, 1.75, Direction.LEFT, Rotate.NO);
 
                 //Forwards is backwards for the slide, therefore use negative integers past 350.
                 Slide.setTargetPosition(-550);
                 Slide.setPower(.6);
 
                 while (Slide.isBusy()) {
-
+                    sleep(10);
                 }
 
                 ClawRotation.setPosition(.7);
 
-                driveAction(.6, 2.4, BVRedRight.Direction.BACKWARD, BVRedRight.Rotate.NO);
+                driveAction(.6, 2.15, Direction.BACKWARD, Rotate.NO);
                 Claw.setPosition(.14);
-                driveAction(.6, 2, Direction.FORWARD, Rotate.NO);
+                driveAction(.3, 2, Direction.FORWARD, Rotate.NO);
 
-                ClawRotation.setPosition(.445);
                 Claw.setPosition(0);
+                ClawRotation.setPosition(.445);
 
                 Slide.setTargetPosition(-50);
                 Slide.setPower(.6);
@@ -419,15 +411,17 @@ public class BVRedRight extends LinearOpMode {
 
                 }
 
-                driveAction(.6, 8, Direction.RIGHT, Rotate.NO);
+                driveAction(.6, 5, Direction.LEFT, Rotate.NO);
+                driveAction(.6, 6.25, Direction.RIGHT, Rotate.YES);
+
 
             }
 
             telemetry.addData("L", leftCounts);
             telemetry.addData("M", middleCounts);
             telemetry.addData("R", rightCounts);
-
             telemetry.update();
+
             sleep(30000);
 
         }
