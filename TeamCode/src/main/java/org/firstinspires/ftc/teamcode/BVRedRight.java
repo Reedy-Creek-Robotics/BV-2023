@@ -284,7 +284,7 @@ public class BVRedRight extends LinearOpMode {
 
         while (opModeIsActive()) {
 
-            ClawRotation.setPosition(.445);
+            ClawRotation.setPosition(0);
 
             telemetry.addData("Prop found at", spikeLocation);
 

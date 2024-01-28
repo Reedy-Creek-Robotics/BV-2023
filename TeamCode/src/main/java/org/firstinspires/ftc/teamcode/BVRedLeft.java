@@ -142,8 +142,8 @@ public class BVRedLeft extends LinearOpMode {
         backRight = hardwareMap.dcMotor.get("BackRight");
         SpinTake = hardwareMap.get(DcMotor.class, "CookieMonster");
         ClawRotation = hardwareMap.get(Servo.class, "ClawRotation");
-        //Claw = hardwareMap.get(Servo.class, "//Claw");
-        //Claw.setDirection(Servo.Direction.REVERSE);
+        Claw = hardwareMap.get(Servo.class, "//Claw");
+        Claw.setDirection(Servo.Direction.REVERSE);
         Slide = hardwareMap.get(DcMotor.class, "Slide");
 
         backLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -163,7 +163,7 @@ public class BVRedLeft extends LinearOpMode {
         frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         Slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        ClawRotation.setPosition(.445);
+        ClawRotation.setPosition(0);
         Slide.setTargetPosition(-50);
         Slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         Slide.setPower(.6);
@@ -286,7 +286,7 @@ public class BVRedLeft extends LinearOpMode {
 
             if (spikeLocation == elementLocation.LEFT) {
 
-                //Claw.setPosition(0);
+                Claw.setPosition(0);
 
                 //Spike Navigation
                 SpinTake.setPower(-0.5);
@@ -314,10 +314,10 @@ public class BVRedLeft extends LinearOpMode {
                 ClawRotation.setPosition(.7);
 
                 driveAction(.3, 5.4, BVRedLeft.Direction.BACKWARD, BVRedLeft.Rotate.NO);
-                //Claw.setPosition(.14);
+                Claw.setPosition(.14);
                 driveAction(.3, 1.5, Direction.FORWARD, Rotate.NO);
 
-                //Claw.setPosition(0);
+                Claw.setPosition(0);
                 ClawRotation.setPosition(.445);
 
                 Slide.setTargetPosition(-50);
@@ -333,7 +333,7 @@ public class BVRedLeft extends LinearOpMode {
 
             if (spikeLocation == elementLocation.MIDDLE) {
 
-                //Claw.setPosition(0);
+                Claw.setPosition(0);
 
                 //Spike Marker
                 driveAction(.45, 7.35, BVRedLeft.Direction.FORWARD, BVRedLeft.Rotate.NO);
@@ -355,10 +355,10 @@ public class BVRedLeft extends LinearOpMode {
                 ClawRotation.setPosition(.7);
 
                 driveAction(.3, 2.4, BVRedLeft.Direction.BACKWARD, BVRedLeft.Rotate.NO);
-                //Claw.setPosition(.14);
+                Claw.setPosition(.14);
                 driveAction(.3, 2, Direction.FORWARD, Rotate.NO);
 
-                //Claw.setPosition(0);
+                Claw.setPosition(0);
                 ClawRotation.setPosition(.445);
 
                 Slide.setTargetPosition(-50);
@@ -374,7 +374,7 @@ public class BVRedLeft extends LinearOpMode {
 
             if (spikeLocation == elementLocation.RIGHT) {
 
-                //Claw.setPosition(0);
+                Claw.setPosition(0);
 
                 //Spike Navigation
                 SpinTake.setPower(-0.5);
@@ -404,11 +404,11 @@ public class BVRedLeft extends LinearOpMode {
                 ClawRotation.setPosition(.7);
 
                 driveAction(.6, 2.9, BVRedLeft.Direction.BACKWARD, BVRedLeft.Rotate.NO);
-                //Claw.setPosition(.14);
+                Claw.setPosition(.14);
                 driveAction(.3, 2, Direction.FORWARD, Rotate.NO);
 
                 ClawRotation.setPosition(.445);
-                //Claw.setPosition(0);
+                Claw.setPosition(0);
 
                 Slide.setTargetPosition(-50);
                 Slide.setPower(.6);

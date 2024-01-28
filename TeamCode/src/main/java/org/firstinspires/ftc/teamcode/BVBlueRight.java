@@ -152,7 +152,7 @@ public class BVBlueRight extends LinearOpMode {
         frontRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         Slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-        ClawRotation.setPosition(.445);
+        ClawRotation.setPosition(0);
         Slide.setTargetPosition(-50);
         Slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         Slide.setPower(.6);

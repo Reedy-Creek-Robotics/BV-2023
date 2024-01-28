@@ -142,7 +142,7 @@ public class BVTeleOp extends LinearOpMode {
             if (Math.abs(Slide.getCurrentPosition()) >= 800) {
                 ClawRotation.setPosition(.7);
             } else {
-                ClawRotation.setPosition(0.445);
+                ClawRotation.setPosition(0);
             }
 
             //suspension slide
