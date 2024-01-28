@@ -142,7 +142,7 @@ public class BVRedLeft extends LinearOpMode {
         backRight = hardwareMap.dcMotor.get("BackRight");
         SpinTake = hardwareMap.get(DcMotor.class, "CookieMonster");
         ClawRotation = hardwareMap.get(Servo.class, "ClawRotation");
-        Claw = hardwareMap.get(Servo.class, "//Claw");
+        Claw = hardwareMap.get(Servo.class, "Claw");
         Claw.setDirection(Servo.Direction.REVERSE);
         Slide = hardwareMap.get(DcMotor.class, "Slide");
 
@@ -282,7 +282,7 @@ public class BVRedLeft extends LinearOpMode {
 
         while (opModeIsActive()) {
 
-            ClawRotation.setPosition(.445);
+            ClawRotation.setPosition(0);
 
             if (spikeLocation == elementLocation.LEFT) {
 
@@ -318,7 +318,7 @@ public class BVRedLeft extends LinearOpMode {
                 driveAction(.3, 1.5, Direction.FORWARD, Rotate.NO);
 
                 Claw.setPosition(0);
-                ClawRotation.setPosition(.445);
+                ClawRotation.setPosition(0);
 
                 Slide.setTargetPosition(-50);
                 Slide.setPower(.6);
@@ -359,7 +359,7 @@ public class BVRedLeft extends LinearOpMode {
                 driveAction(.3, 2, Direction.FORWARD, Rotate.NO);
 
                 Claw.setPosition(0);
-                ClawRotation.setPosition(.445);
+                ClawRotation.setPosition(0);
 
                 Slide.setTargetPosition(-50);
                 Slide.setPower(.6);
@@ -407,7 +407,7 @@ public class BVRedLeft extends LinearOpMode {
                 Claw.setPosition(.14);
                 driveAction(.3, 2, Direction.FORWARD, Rotate.NO);
 
-                ClawRotation.setPosition(.445);
+                ClawRotation.setPosition(0);
                 Claw.setPosition(0);
 
                 Slide.setTargetPosition(-50);

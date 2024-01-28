@@ -165,7 +165,7 @@ public class BVRedRight extends LinearOpMode {
         Slide.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         Claw.setPosition(0);
-        ClawRotation.setPosition(.445);
+        ClawRotation.setPosition(0);
         Slide.setTargetPosition(-50);
         Slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         Slide.setPower(.6);
@@ -317,7 +317,7 @@ public class BVRedRight extends LinearOpMode {
                 driveAction(.3, 2, Direction.FORWARD, Rotate.NO);
 
                 Claw.setPosition(0);
-                ClawRotation.setPosition(.445);
+                ClawRotation.setPosition(0);
 
                 Slide.setTargetPosition(-50);
                 Slide.setPower(.6);
@@ -356,7 +356,7 @@ public class BVRedRight extends LinearOpMode {
                 driveAction(.3, 2, Direction.FORWARD, Rotate.NO);
 
                 Claw.setPosition(0);
-                ClawRotation.setPosition(.445);
+                ClawRotation.setPosition(0);
 
                 Slide.setTargetPosition(-50);
                 Slide.setPower(.6);
@@ -400,7 +400,7 @@ public class BVRedRight extends LinearOpMode {
                 driveAction(.3, 2, Direction.FORWARD, Rotate.NO);
 
                 Claw.setPosition(0);
-                ClawRotation.setPosition(.445);
+                ClawRotation.setPosition(0);
 
                 Slide.setTargetPosition(-50);
                 Slide.setPower(.6);
