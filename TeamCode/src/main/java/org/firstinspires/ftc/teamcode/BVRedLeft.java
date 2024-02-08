@@ -311,7 +311,7 @@ public class BVRedLeft extends LinearOpMode {
 
                 }
 
-                ClawRotation.setPosition(.3);
+                ClawRotation.setPosition(.275);
 
                 driveAction(.3, 5.4, BVRedLeft.Direction.BACKWARD, BVRedLeft.Rotate.NO);
                 Claw.setPosition(.14);
@@ -352,7 +352,7 @@ public class BVRedLeft extends LinearOpMode {
 
                 sleep(1500);
 
-                ClawRotation.setPosition(.3);
+                ClawRotation.setPosition(.275);
 
                 driveAction(.3, 2.4, BVRedLeft.Direction.BACKWARD, BVRedLeft.Rotate.NO);
                 Claw.setPosition(.14);
@@ -401,7 +401,7 @@ public class BVRedLeft extends LinearOpMode {
 
                 sleep(1500);
 
-                ClawRotation.setPosition(.3);
+                ClawRotation.setPosition(.275);
 
                 driveAction(.6, 2.9, BVRedLeft.Direction.BACKWARD, BVRedLeft.Rotate.NO);
                 Claw.setPosition(.14);

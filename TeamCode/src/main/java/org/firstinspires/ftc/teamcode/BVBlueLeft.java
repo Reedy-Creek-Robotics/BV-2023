@@ -294,7 +294,7 @@ public class BVBlueLeft extends LinearOpMode {
 
                 }
 
-                ClawRotation.setPosition(.3);
+                ClawRotation.setPosition(.275);
 
                 driveAction(.6, 5.4, BVBlueLeft.Direction.BACKWARD, BVBlueLeft.Rotate.NO);
                 Claw.setPosition(.14);
@@ -335,7 +335,7 @@ public class BVBlueLeft extends LinearOpMode {
 
                 }
 
-                ClawRotation.setPosition(.3);
+                ClawRotation.setPosition(.275);
 
                 driveAction(.6, 2.4, BVBlueLeft.Direction.BACKWARD, BVBlueLeft.Rotate.NO);
                 Claw.setPosition(.14);
@@ -389,7 +389,7 @@ public class BVBlueLeft extends LinearOpMode {
 
                 }
 
-                ClawRotation.setPosition(.3);
+                ClawRotation.setPosition(.275);
 
                 driveAction(.6, 2.4, BVBlueLeft.Direction.BACKWARD, BVBlueLeft.Rotate.NO);
                 Claw.setPosition(.14);

@@ -298,7 +298,7 @@ public class BVBlueRight extends LinearOpMode {
 
                 }
 
-                ClawRotation.setPosition(.3);
+                ClawRotation.setPosition(.275);
 
                 driveAction(.6, 5.4, BVBlueRight.Direction.BACKWARD, BVBlueRight.Rotate.NO);
                 Claw.setPosition(.14);
@@ -339,7 +339,7 @@ public class BVBlueRight extends LinearOpMode {
 
                 sleep(1500);
 
-                ClawRotation.setPosition(.3);
+                ClawRotation.setPosition(.275);
 
                 driveAction(.6, 2.4, BVBlueRight.Direction.BACKWARD, BVBlueRight.Rotate.NO);
                 Claw.setPosition(.14);
@@ -387,7 +387,7 @@ public class BVBlueRight extends LinearOpMode {
 
                 sleep(1500);
 
-                ClawRotation.setPosition(.3);
+                ClawRotation.setPosition(.275);
 
                 driveAction(.6, 2.55, BVBlueRight.Direction.BACKWARD, BVBlueRight.Rotate.NO);
                 Claw.setPosition(.14);
